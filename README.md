@@ -1,4 +1,5 @@
-# n2k-gateway
+# NMEA2000_ais_wifi_gw
+
 An ESP32 based N2K gateway for various sensors and data sources
 
 I wanted a gateway to interface some of my older NMEA0183 equipment to my new B&G NMEA2000 kit. specificaly an AIS receiver from NASA and my trusty Horizon CP300i chart plotter. 
@@ -11,11 +12,13 @@ Ths relies heavily on the excellent NMEA2000 and NMEA0183 libraries from Timo La
 
 https://github.com/ttlappalainen
 
-It is also very heavily based on the projects from AK-Homberger https://github.com/AK-Homberger
+It is also very heavily based on the projects from AK-Homberger: 
+
+https://github.com/AK-Homberger
 
 To this I've added some extensions and additions:
 
-- A simple command shell that can be accessed using telnet (yes, yes, I know...) to issue commands, get status of the subsystems, set/get the settings from the preferences (see below) and do some basic debugging. 
+- A simple command shell that can be accessed using telnet (yes, yes, security I know...) to issue commands, get status of the subsystems, set/get the settings from the preferences (see below) and do some basic debugging. 
 
 - Most of the settings and options are stored in the preferences object so they can be changed in real-time using the shell. All the WiFi details are in the settings so there are no credentials in the code. This does mean that setup requies a specific step to connect to the AP first time round to setup the WiFi details, but thats a one-off.
 
@@ -23,8 +26,13 @@ To this I've added some extensions and additions:
 
 - Basic system information, CPU usage, memory, versions, hardware, again that can be accessed from the shell.
 
-I've allso included temperature, pressure, GPS, compass and boat vitals from the engine, though some of these are duplicates/standby of other sensors on the boat. 
+- Logs of the NMEA2000 and NMEA0183 message counts.
 
-I created a general purpose PCB for the ESP32, CAN bus driver and 12V to 5V DC regulator. The PCB has a general prototype area and exposes some of the GPIOs to headers. 
+I've also included temperature, pressure, compass.
+
+I created a general purpose PCB for the ESP32 - see the hardware section -  CAN bus driver and 12V to 5V DC regulator. The PCB has a general prototype area and exposes some of the GPIOs to headers. The PCB uses 5V CAN transcievers as I had those to hand and so also has a TTL/3.3V level shifter. 
 
 All the code was developed using Visual Studio Code and PlatformIO for the ESP32. I know the code isn't that tidy, but I was interested in getting a working baseline to actually use on my boat for starters.
+
+Another project (NMEA2000_engin_elecrical_nodemcu_32s) has the engine RPM and battery monitors. These have been moved from this project so the code is clearner and does not try to be too general with lots of conditional compilation or software switches.
+
