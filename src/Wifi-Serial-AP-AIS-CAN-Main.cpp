@@ -71,7 +71,7 @@ using LinkedList = std::list<T>;
 
 #define ADC_Calibration_Value  22.525 // 24.20  // 34.3 The real value depends on the true resistor values for the ADC input (100K / 22 K)
 
-#define WLAN_CLIENT 1  // Set to 1 to enable client network. 0 to act as AP only
+#define WLAN_CLIENT 0  // Set to 1 to enable client network. 0 to act as AP only
 
 // Data wire for teperature (Dallas DS18B20) is plugged into GPIO 13 on the ESP32
 #define ONE_WIRE_BUS 13
@@ -444,9 +444,10 @@ char YD_msg[Max_YD_Message_Size] = "";
 // Create UDP instance
 WiFiUDP udp;
 
-// Send to Yacht device clients over udp using the broadcast address
+// Send to Yacht device clients over udp using the cast address
 void GwSendYD(const tN2kMsg &N2kMsg) {
     IPAddress udpAddress = WiFi.broadcastIP();
+    udpAddress.fromString("192.168.15.255");
     N2kToYD_Can(N2kMsg, YD_msg);  // Create YD message from PGN
     udp.beginPacket(udpAddress, YDudpPort);  // Send to UDP
     udp.printf("%s\r\n", YD_msg);
@@ -458,6 +459,15 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
     udp.beginPacket(udpAddress, 4445);
     udp.println(buf);
     udp.endPacket();
+}
+
+// Handle some other gw messages from other gw nodes
+void handle_gw_msgs(const tN2kMsg &N2kMsg) {
+    ulong PGN = N2kMsg.PGN;
+
+    if(PGN == 127508L) {
+        GwSendYD(N2kMsg);
+    }
 }
 
 
@@ -664,10 +674,11 @@ void setup() {
                                          "Connect AIS NMEA at 34000");
 
     // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
-
     NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);  // Show in clear text. Leave uncommented for default Actisense format.
+    
+    NMEA2000.SetMsgHandler(handle_gw_msgs);
 
-   NodeAddress = GwGetVal(LASTNODEADDRESS, "32").toInt();
+    NodeAddress = GwGetVal(LASTNODEADDRESS, "32").toInt();
 
     Console->printf("NodeAddress=%d\n", NodeAddress);
 
@@ -675,13 +686,6 @@ void setup() {
 
     NMEA2000.ExtendTransmitMessages(TransmitMessages);
     NMEA2000.ExtendReceiveMessages(ReceiveMessages);
-#if defined HAVE_NMEA0183
-    NMEA2000.AttachMsgHandler(&N2kDataToNMEA0183);  // NMEA 2000 -> NMEA 0183 conversion
-    
-   //NMEA2000.SetMsgHandler(HandleNMEA2000Msg);       // Also send all NMEA2000 messages in SeaSmart format
-
-    N2kDataToNMEA0183.SetSendNMEA0183MessageCallback(SendNMEA0183Message);
-#endif
     NMEA2000.Open();
 
     IdleInit();
@@ -860,9 +864,6 @@ void SendN2kEnvironment() {
 
         Sensors["Outside temp"] = String(outsideTemp);
         Sensors["Pressure"] = String(pressure / 100);
-
-        String addr = WiFi.broadcastIP().toString();
-        Console->println(addr);
     }
 }
 
@@ -892,35 +893,6 @@ void handleTelnet() {
         setShellSource(&Serial);
         return;
     }
-
-    /*
-    // read and process data one char at a time to avoid blocking main loop
-    if(telnetClient.available()) {
-        unsigned char r = telnetClient.read();
-
-        // End of line checks "\r\n"
-        if(last == '\r' && r == '\n') {
-            // End of line
-            // Do something with it
-            Console->print(command);
- 
-
-            if(command == "exit") {
-                Console = &Serial;
-                telnetClient.stop();
-            } 
-            command = "";
-            last = ' ';
-        } else {
-            last = r;
-            if(isprint(r)) {
-                command += char(r);
-            } else {
-                Console->printf("TNX: 0x%x %d (0x%x %d)\n", r, r, last, last);
-            }
-        }
-    }
-    */
 }
 
 void handle_json() {
@@ -928,8 +900,6 @@ void handle_json() {
 
     // Do we have a client?
     if (!client) return;
-
-    // Console->println(F("New client"));
 
     // Read the request (we ignore the content in this example)
     while (client.available()) client.read();
@@ -960,10 +930,6 @@ void handle_json() {
     root["GPSTime"] = BoatData.GPSTime;
     root["DaysSince1970"] = BoatData.DaysSince1970;
     root["BatteryVoltage"] = voltage;
-
-    //Console->print(F("Sending: "));
-    //serializeJson(root, Serial);
-    //Console->println();
 
     // Write response headers
     client.println("HTTP/1.0 200 OK");
@@ -1152,7 +1118,7 @@ void loop() {
     voltage = ((voltage * 15) + (AdcValue * ADC_Calibration_Value / 4096)) / 16;  // This implements a low pass filter to eliminate spike for ADC readings
 
     SendN2kEnvironment();
-    SendN2kCompass();
+  //  SendN2kCompass();
     SendN2kEngineSlow();
     CheckConnections(); 
     NMEA2000.ParseMessages();
@@ -1167,12 +1133,6 @@ void loop() {
  #if defined HAVE_NMEA0183
     N2kDataToNMEA0183.Update(&BoatData);
 #endif
-
-    // Dummy to empty input buffer to avoid board to stuck with e.g. NMEA Reader
-    if (Console->available()) {
-        Console->read();
-    }
-
 
 #if ENABLE_DEBUG_LOG == 2
     Console->print("Voltage:");
