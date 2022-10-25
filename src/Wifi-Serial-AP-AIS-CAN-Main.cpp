@@ -24,14 +24,12 @@
 #include <DNSServer.h>
 #include <DallasTemperature.h>
 #include <N2kMessages.h>
-
 #include <N2kMsg.h>
 #include <NMEA0183.h>
 #include <NMEA0183Messages.h>
 #include <NMEA0183Msg.h>
 #include <NMEA2000.h>
 #include <NMEA2000_CAN.h>  // This will automatically choose right CAN library and create suitable NMEA2000 object
-#include <Seasmart.h>
 #include <OneButton.h>
 #include <Preferences.h>
 #include <Seasmart.h>
@@ -46,30 +44,31 @@
 #include "BoatData.h"
 #include "ESPmDNS.h"
 //#include "List.h"
+#include <AisHandler.h>
+#include <GwPrefs.h>
+#include <GwShell.h>
+#include <Idle.h>
+#include <StringStream.h>
+#include <SysInfo.h>
+#include <html_footer.h>
+#include <html_header.h>
+#include <nmea2000Handlers.h>
+
+#include <list>
+#include <map>
+
 #include "N2kDataToNMEA0183.h"
 #include "N2kDeviceList.h"
 #include "NMEA0183Handlers.h"
-#include <nmea2000Handlers.h>
-#include <AisHandler.h>
-#include <GwShell.h>
-#include <map>
-#include <StringStream.h>
-#include <SysInfo.h>
-#include <html_header.h>
-#include <html_footer.h>
-#include <GwPrefs.h>
-#include <Idle.h>
-#include <list>
 
 template <class T>
 using LinkedList = std::list<T>;
-
 
 #define UDP_Forwarding 0    // Set to 1 for forwarding AIS from serial2 to UDP brodcast
 #define HighTempAlarm 12    // Alarm level for fridge temperature (higher)
 #define LowVoltageAlarm 11  // Alarm level for battery voltage (lower)
 
-#define ADC_Calibration_Value  22.525 // 24.20  // 34.3 The real value depends on the true resistor values for the ADC input (100K / 22 K)
+#define ADC_Calibration_Value 22.525  // 24.20  // 34.3 The real value depends on the true resistor values for the ADC input (100K / 22 K)
 
 #define WLAN_CLIENT 0  // Set to 1 to enable client network. 0 to act as AP only
 
@@ -79,33 +78,32 @@ using LinkedList = std::list<T>;
 #define MiscSendOffset 120
 #define VerySlowDataUpdatePeriod 10000  // temperature etc
 #define SlowDataUpdatePeriod 1000       // Time between CAN Messages sent
-#define FastDataUpdatePeriod 100       // Fast data period
+#define FastDataUpdatePeriod 100        // Fast data period
 
 #define USE_ARDUINO_OTA true
 #define USE_MDNS true
-
 
 // This mode is for a 0183 to n2K gateway like an Actisense NGW
 // Note. this does not work fully yet.
 //#define HAVE_NMEA0183 true
 
-#if defined HAVE_NMEA0183 
+#if defined HAVE_NMEA0183
 ////// Setup the pins for serial1 for the NMEA0183
 ////// These pins are behind the logic level shifter
-#define RXD0 19   
+#define RXD0 19
 #define TXD0 18
 #define GWMODE "AIS & NMEA0183 GW"
 #else
 #define GWMODE "AIS "
 #endif
 
-#define MAX_NMEA2000_MESSAGE_SEASMART_SIZE 500 
+#define MAX_NMEA2000_MESSAGE_SEASMART_SIZE 500
 
 // Global objects and variables
 String host_name;
 String Model = "Naiad N2K WiFi ";
 
-Stream *OutputStream = NULL; //&Serial;
+Stream *OutputStream = NULL;  //&Serial;
 
 // List of n2k devices for the device scanner
 tN2kDeviceList *pN2kDeviceList;
@@ -117,11 +115,11 @@ typedef struct {
 } WiFiCreds;
 
 static const uint16_t MaxAP = 2;
-WiFiCreds wifiCreds [MaxAP];
+WiFiCreds wifiCreds[MaxAP];
 
 // Wifi cofiguration Client and Access Point
-String AP_password; // AP password  read from preferences
-String AP_ssid;     // SSID for the AP constructed from the hostname
+String AP_password;  // AP password  read from preferences
+String AP_ssid;      // SSID for the AP constructed from the hostname
 
 // Put IP address details here
 const IPAddress AP_local_ip(192, 168, 15, 1);  // Static address for AP
@@ -131,16 +129,16 @@ const IPAddress AP_subnet(255, 255, 255, 0);
 int wifiType = 0;  // 0= Client 1= AP
 
 const uint16_t ServerPort = 2222;  // Define the TCP port.
-                                    // This is where server sends NMea0183 data. 
+                                   // This is where server sends NMea0183 data.
 
 // Define the console to output to serial at startup.
 // this can get changed later, eg in the gwshell.
-Stream * Console = & Serial;
+Stream *Console = &Serial;
 
-IPAddress UnitIP;   // The address of this device. Could be client or AP
+IPAddress UnitIP;  // The address of this device. Could be client or AP
 
 // UPD broadcast for Navionics, OpenCPN, etc.
-const int YDudpPort = 4444;                   // port 4444 is for the Yacht devices interface
+const int YDudpPort = 4444;  // port 4444 is for the Yacht devices interface
 
 // Struct to update BoatData. See BoatData.h for content
 tBoatData BoatData;
@@ -221,7 +219,6 @@ void debug_log(char *str) {
 #endif
 }
 
-
 /////// Variables
 using namespace std;
 
@@ -279,7 +276,7 @@ void initializeOTA() {
 
 String WifiMode = "Unknown";
 String WifiSSID = "Unknown";
-String WifiIP   = "Unknown";
+String WifiIP = "Unknown";
 
 // Connect to a wifi AP
 // Try all the configured APs
@@ -288,7 +285,7 @@ bool connectWifi() {
 
     Serial.printf("There are %d APs to try\n", MaxAP);
 
-    for(int i = 0; i < MaxAP; i++) {
+    for (int i = 0; i < MaxAP; i++) {
         Serial.printf("\nTrying %s\n", wifiCreds[i].ssid.c_str());
         WiFi.disconnect();
         WiFi.mode(WIFI_OFF);
@@ -302,7 +299,7 @@ bool connectWifi() {
             Console->print(".");
         }
         Console->println("");
-        if(WiFi.status() == WL_CONNECTED) {
+        if (WiFi.status() == WL_CONNECTED) {
             WifiMode = "Client";
             WifiSSID = wifiCreds[i].ssid;
             WifiIP = WiFi.localIP().toString();
@@ -342,15 +339,15 @@ uint8_t chipid[6];
 String macAddress;
 
 // HTML handlers
-String html_start = HTML_start; //Read HTML contents
+String html_start = HTML_start;  // Read HTML contents
 String html_end = HTML_end;
 void handleRoot() {
- webserver.send(200, "text/html", html_start + html_end); //Send web page
+    webserver.send(200, "text/html", html_start + html_end);  // Send web page
 }
 
 void handleData() {
     String adcValue(random(100));
-    webserver.send(200, "application/json", adcValue);  //Send ADC value only to client ajax request
+    webserver.send(200, "application/json", adcValue);  // Send ADC value only to client ajax request
 }
 
 void handleBoat() {
@@ -389,8 +386,7 @@ void handleBoat() {
     boatData.printf("</div>");
 
     boatData.printf("</pre>");
-    webserver.send(200, "text/html", html_start + boatData.data.c_str() + html_end);  //Send web page
- 
+    webserver.send(200, "text/html", html_start + boatData.data.c_str() + html_end);  // Send web page
 }
 
 /**
@@ -448,14 +444,14 @@ WiFiUDP udp;
 void GwSendYD(const tN2kMsg &N2kMsg) {
     IPAddress udpAddress = WiFi.broadcastIP();
     udpAddress.fromString("192.168.15.255");
-    N2kToYD_Can(N2kMsg, YD_msg);  // Create YD message from PGN
+    N2kToYD_Can(N2kMsg, YD_msg);             // Create YD message from PGN
     udp.beginPacket(udpAddress, YDudpPort);  // Send to UDP
     udp.printf("%s\r\n", YD_msg);
     udp.endPacket();
 
-  char buf[MAX_NMEA2000_MESSAGE_SEASMART_SIZE];
-  if ( N2kToSeasmart(N2kMsg,millis(),buf,MAX_NMEA2000_MESSAGE_SEASMART_SIZE)==0 ) return;
-  
+    char buf[MAX_NMEA2000_MESSAGE_SEASMART_SIZE];
+    if (N2kToSeasmart(N2kMsg, millis(), buf, MAX_NMEA2000_MESSAGE_SEASMART_SIZE) == 0) return;
+
     udp.beginPacket(udpAddress, 4445);
     udp.println(buf);
     udp.endPacket();
@@ -465,11 +461,10 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
 void handle_gw_msgs(const tN2kMsg &N2kMsg) {
     ulong PGN = N2kMsg.PGN;
 
-    if(PGN == 127508L) {
+    if (PGN == 127508L) {
         GwSendYD(N2kMsg);
     }
 }
-
 
 // Main setup
 void setup() {
@@ -490,12 +485,12 @@ void setup() {
 
     // get the MAC address
     esp_err_t fuse_error = esp_efuse_mac_get_default(chipid);
-    if(fuse_error) {
+    if (fuse_error) {
         Serial.printf("efuse error: %d\n", fuse_error);
     }
 
-    for (i = 0; i < 6; i++)  {
-        if(i != 0) {
+    for (i = 0; i < 6; i++) {
+        if (i != 0) {
             macAddress += ":";
         }
         id += (chipid[i] << (7 * i));
@@ -507,10 +502,10 @@ void setup() {
     host_name = hname + String(chipid[4], HEX) + String(chipid[5], HEX);
 
     Serial.printf("Chipid %x %x %x %x %x %x id 0x%x MAC %s Hostname %s\n",
-        chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5], 
-        id, macAddress.c_str(), host_name.c_str());
+                  chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5],
+                  id, macAddress.c_str(), host_name.c_str());
 
-      // get CPU calibration timing
+    // get CPU calibration timing
     calibrateCpu();
 
 #ifdef HAVE_NMEA0183
@@ -521,9 +516,9 @@ void setup() {
     Console->println("***Serial Rxd is on pin: " + String(RXD0));
 #endif
 
-   // Init AIS serial port 2
-   // The AIS receiver I use is the NASA AIS Engine 3 device which outputs NMEA0183 at 38400 bps
-   // https://www.nasamarine.com/product/ais-engine-3/
+    // Init AIS serial port 2
+    // The AIS receiver I use is the NASA AIS Engine 3 device which outputs NMEA0183 at 38400 bps
+    // https://www.nasamarine.com/product/ais-engine-3/
     Serial2.begin(ais_baudrate, rs_config);
     AIS_NMEA0183.Begin(&Serial2, 3, ais_baudrate);
 
@@ -542,7 +537,7 @@ void setup() {
     oled_write(0, 0, "Initialising...");
 
 #ifdef HAVE_NMEA0183
-   // Setup NMEA0183 ports and handlers
+    // Setup NMEA0183 ports and handlers
     InitNMEA0183Handlers(&NMEA2000, &BoatData);
     STD_NMEA0183.SetMsgHandler(HandleNMEA0183Msg);
     STD_NMEA0183.SetMessageStream(&Serial1);
@@ -556,7 +551,7 @@ void setup() {
     wifiCreds[1].pass = GwGetVal(SSPW2);
 
     // Setup params if we are to be an AP
-    AP_password =       GwGetVal(GWPASS);
+    AP_password = GwGetVal(GWPASS);
 
     if (WLAN_CLIENT == 1) {
         Console->println("Start WLAN Client");  // WiFi Mode Client
@@ -564,7 +559,7 @@ void setup() {
         WiFi.setHostname(host_name.c_str());
         connectWifi();
     }
-    
+
     if (WiFi.status() != WL_CONNECTED) {  // No client connection start AP
         // Init wifi connection
         Console->println("Start WLAN AP");  // WiFi Mode AP
@@ -642,8 +637,8 @@ void setup() {
     initGwShell();
 
     // Reserve enough buffer for sending all messages. This does not work on small memory devices like Uno or Mega
-  
-   NMEA2000.SetN2kCANMsgBufSize(8);
+
+    NMEA2000.SetN2kCANMsgBufSize(8);
     NMEA2000.SetN2kCANReceiveFrameBufSize(250);
     NMEA2000.SetN2kCANSendFrameBufSize(250);
 
@@ -653,11 +648,11 @@ void setup() {
     // Set product information
     Model += GWMODE;
 
-    NMEA2000.SetProductInformation(host_name.c_str(),               // Manufacturer's Model serial code
-                                   100,                             // Manufacturer's product code
-                                   Model.c_str(),  // Manufacturer's Model ID
-                                   "1.0.0 (2021-06-11)",         // Manufacturer's Software version code
-                                   "1.0.0 (2021-06-11)"           // Manufacturer's Model version
+    NMEA2000.SetProductInformation(host_name.c_str(),     // Manufacturer's Model serial code
+                                   100,                   // Manufacturer's product code
+                                   Model.c_str(),         // Manufacturer's Model ID
+                                   "1.0.0 (2021-06-11)",  // Manufacturer's Software version code
+                                   "1.0.0 (2021-06-11)"   // Manufacturer's Model version
     );
     // Set device information
     NMEA2000.SetDeviceInformation(id,   // Unique number. Use e.g. Serial number. Id is generated from MAC-Address
@@ -668,14 +663,13 @@ void setup() {
 
     oled_printf(0, lineh * 2, "My ID 0x%x", id);
 
-    
     NMEA2000.SetConfigurationInformation("Naiad ",
                                          "Must be installed internally, not water or dust proof.",
                                          "Connect AIS NMEA at 34000");
 
     // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
     NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);  // Show in clear text. Leave uncommented for default Actisense format.
-    
+
     NMEA2000.SetMsgHandler(handle_gw_msgs);
 
     NodeAddress = GwGetVal(LASTNODEADDRESS, "32").toInt();
@@ -744,7 +738,7 @@ void SendN2kCompass() {
         theading = fheading * 180 / PI;
         if (fheading != NAN) {
             Console->printf("Heading %f(Rads) %d(Deg)\n", fheading, theading);
-            oled_printf(0, lineh * 2, "HDG %d deg %s", theading, sendHeading ? "On":"Off");
+            oled_printf(0, lineh * 2, "HDG %d deg %s", theading, sendHeading ? "On" : "Off");
             SetN2kPGN127250(N2kMsg,
                             0,  // SID
                             fheading,
@@ -864,7 +858,6 @@ void SendN2kEnvironment() {
     }
 }
 
-
 static WiFiClient telnetClient;
 
 void disconnect() {
@@ -872,21 +865,20 @@ void disconnect() {
 }
 
 void handleTelnet() {
-
-    if(telnetClient && telnetClient.connected()) {
+    if (telnetClient && telnetClient.connected()) {
         // Got a connected client so use it
     } else {
         // See if there is a new connection and assign the new client
         telnetClient = telnet.available();
-        if(telnetClient) {
+        if (telnetClient) {
             // Set up the client
-            //telnetClient.setNoDelay(true); // More faster
-            telnetClient.flush(); // clear input buffer, else you get strange characters
+            // telnetClient.setNoDelay(true); // More faster
+            telnetClient.flush();  // clear input buffer, else you get strange characters
             setShellSource(&telnetClient);
         }
     }
 
-    if(!telnetClient) {
+    if (!telnetClient) {
         setShellSource(&Serial);
         return;
     }
@@ -941,37 +933,33 @@ void handle_json() {
     client.stop();
 }
 
-
-
-void displayBoat(Stream & stream) {
+void displayBoat(Stream &stream) {
     stream.printf("Latitude      %f\n", BoatData.Latitude);
-    stream.printf("Longitude     %f\n",BoatData.Longitude);
-    stream.printf("Heading       %f\n",BoatData.Heading);
-    stream.printf("COG           %f\n",BoatData.COG);
-    stream.printf("SOG           %f\n",BoatData.SOG);
-    stream.printf("STW           %f\n",BoatData.STW);
-    stream.printf("AWS           %f\n",BoatData.AWS);
-    stream.printf("TWS           %f\n",BoatData.TWS);
-    stream.printf("MaxAws        %f\n",BoatData.MaxAws);
-    stream.printf("MaxTws        %f\n",BoatData.MaxTws);
-    stream.printf("AWA           %f\n",BoatData.AWA);
-    stream.printf("TWA           %f\n",BoatData.TWA);
-    stream.printf("TWD           %f\n",BoatData.TWD);
-    stream.printf("TripLog       %f\n",BoatData.TripLog);
-    stream.printf("Log           %f\n",BoatData.Log);
-    stream.printf("WaterTemp     %f\n",BoatData.WaterTemperature);
-    stream.printf("WaterDepth    %f\n",BoatData.WaterDepth);
-    stream.printf("Variation     %f\n",BoatData.Variation);
-    stream.printf("Altitude      %f\n",BoatData.Altitude);
-    stream.printf("GPSTime       %f\n",BoatData.GPSTime);
-    stream.printf("DaysSince1970 %lu\n",BoatData.DaysSince1970);
-    stream.printf("BatteryVolt   %f\n",voltage);
-
+    stream.printf("Longitude     %f\n", BoatData.Longitude);
+    stream.printf("Heading       %f\n", BoatData.Heading);
+    stream.printf("COG           %f\n", BoatData.COG);
+    stream.printf("SOG           %f\n", BoatData.SOG);
+    stream.printf("STW           %f\n", BoatData.STW);
+    stream.printf("AWS           %f\n", BoatData.AWS);
+    stream.printf("TWS           %f\n", BoatData.TWS);
+    stream.printf("MaxAws        %f\n", BoatData.MaxAws);
+    stream.printf("MaxTws        %f\n", BoatData.MaxTws);
+    stream.printf("AWA           %f\n", BoatData.AWA);
+    stream.printf("TWA           %f\n", BoatData.TWA);
+    stream.printf("TWD           %f\n", BoatData.TWD);
+    stream.printf("TripLog       %f\n", BoatData.TripLog);
+    stream.printf("Log           %f\n", BoatData.Log);
+    stream.printf("WaterTemp     %f\n", BoatData.WaterTemperature);
+    stream.printf("WaterDepth    %f\n", BoatData.WaterDepth);
+    stream.printf("Variation     %f\n", BoatData.Variation);
+    stream.printf("Altitude      %f\n", BoatData.Altitude);
+    stream.printf("GPSTime       %f\n", BoatData.GPSTime);
+    stream.printf("DaysSince1970 %lu\n", BoatData.DaysSince1970);
+    stream.printf("BatteryVolt   %f\n", voltage);
 }
 
-
 //*****************************************************************************
-void PrintUlongList(const char *prefix, const unsigned long *List, Stream & stream) {
+void PrintUlongList(const char *prefix, const unsigned long *List, Stream &stream) {
     uint8_t i;
     if (List != 0) {
         stream.printf(prefix);
@@ -984,21 +972,21 @@ void PrintUlongList(const char *prefix, const unsigned long *List, Stream & stre
 }
 
 //*****************************************************************************
-void PrintText(const char *Text, bool AddLineFeed, Stream & stream) {
-    if (Text != 0) 
+void PrintText(const char *Text, bool AddLineFeed, Stream &stream) {
+    if (Text != 0)
         stream.print(Text);
-    if (AddLineFeed) 
+    if (AddLineFeed)
         stream.println();
 }
 
 //*****************************************************************************
-void PrintDevice(const tNMEA2000::tDevice *pDevice, Stream & stream) {
+void PrintDevice(const tNMEA2000::tDevice *pDevice, Stream &stream) {
     if (pDevice == 0) return;
 
     stream.printf("----------------------------------------------------------------------\n");
     stream.printf("%s\n", pDevice->GetModelID());
     stream.printf("  Source: %d\n", pDevice->GetSource());
-    stream.printf("  Manufacturer code:        %d\n",pDevice->GetManufacturerCode());
+    stream.printf("  Manufacturer code:        %d\n", pDevice->GetManufacturerCode());
     stream.printf("  Serial Code:              %s\n", pDevice->GetModelSerialCode());
     stream.printf("  Unique number:            %d\n", pDevice->GetUniqueNumber());
     stream.printf("  Software version:         %s\n", pDevice->GetSwCode());
@@ -1016,11 +1004,11 @@ void PrintDevice(const tNMEA2000::tDevice *pDevice, Stream & stream) {
 
 #define START_DELAY_IN_S 8
 //*****************************************************************************
-void ListDevices(Stream & stream, bool force = false) {
+void ListDevices(Stream &stream, bool force = false) {
     static bool StartDelayDone = false;
     static int StartDelayCount = 0;
     static unsigned long NextStartDelay = 0;
-  
+
     if (!StartDelayDone) {  // We let system first collect data to avoid printing all changes
         if (millis() > NextStartDelay) {
             if (StartDelayCount == 0) {
@@ -1051,16 +1039,17 @@ void loop() {
     int wifi_retry;
     static time_t last = 0;
     static time_t last2 = 0;
-    time_t now = time(NULL);;
+    time_t now = time(NULL);
+    ;
     static int nexti = 0;
-    const char spinner[] = {'|','/', '-', '\\'};
+    const char spinner[] = {'|', '/', '-', '\\'};
 
-   // Get some values from the prefs
+    // Get some values from the prefs
     sendHeading = GwGetVal(SENDHEADING, "0").toInt();
 
     // Process any n2k messages
     NMEA2000.ParseMessages();
- 
+
 #ifdef HAVE_NMEA0183
     // Read and handle the standard messages
     STD_NMEA0183.ParseMessages();
@@ -1074,7 +1063,7 @@ void loop() {
         ListDevices(s, false);
     }
     Console->print(s.data);
- 
+
     ArduinoOTA.handle();
 
     // every few hundred msecs
@@ -1091,20 +1080,20 @@ void loop() {
         digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
         oled_printf(0, 0, "Up %c %s", spinner[nexti], host_name.c_str());
         nexti++;
-        if(nexti >= 4) {
-          nexti=0;
+        if (nexti >= 4) {
+            nexti = 0;
         }
     }
- 
+
     // Handle any web server requests
     webserver.handleClient();
 
     // handle json requests
     handle_json();
- 
+
     // handle the telnet session
     handleTelnet();
- 
+
     // And run and shell commands
     handleShell();
 
@@ -1115,29 +1104,29 @@ void loop() {
     voltage = ((voltage * 15) + (AdcValue * ADC_Calibration_Value / 4096)) / 16;  // This implements a low pass filter to eliminate spike for ADC readings
 
     SendN2kEnvironment();
-  //  SendN2kCompass();
+    //  SendN2kCompass();
     SendN2kEngineSlow();
-    CheckConnections(); 
+    CheckConnections();
     NMEA2000.ParseMessages();
- 
+
     int SourceAddress = NMEA2000.GetN2kSource();
     if (SourceAddress != NodeAddress) {  // Save potentially changed Source Address to NVS memory
         NodeAddress = SourceAddress;     // Set new Node Address (to save only once)
         GwSetVal(LASTNODEADDRESS, String(SourceAddress));
         Console->printf("Address Change: New Address=%d\n", SourceAddress);
     }
- 
- #if defined HAVE_NMEA0183
+
+#if defined HAVE_NMEA0183
     N2kDataToNMEA0183.Update(&BoatData);
 #endif
 
 #if ENABLE_DEBUG_LOG == 2
     Console->print("Voltage:");
     Console->println(voltage);
-    //Console->print("Temperature: ");Console->println(temp);
+    // Console->print("Temperature: ");Console->println(temp);
     Console->println("");
 #endif
- 
+
     if (wifiType == 0) {  // Check connection if working as client
         wifi_retry = 0;
         while (WiFi.status() != WL_CONNECTED && wifi_retry < 5) {  // Connection lost, 5 tries to reconnect

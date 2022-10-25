@@ -1,15 +1,35 @@
 // System and net info
+/*
+Copyright (c) 2022 Peter Martin www.naiadhome.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 #include <Arduino.h>
 #include <ESP.h>
 #include <GwPrefs.h>
-#include <SysInfo.h>
 #include <NMEA0183Messages.h>
+#include <SysInfo.h>
 #include <esp_wifi.h>
 
 #include "uptime_formatter.h"
 
-void getNetInfo(Stream & s) {
+void getNetInfo(Stream &s) {
     wifi_sta_list_t wifi_sta_list;
     tcpip_adapter_sta_list_t adapter_sta_list;
 
@@ -26,7 +46,7 @@ void getNetInfo(Stream & s) {
     esp_wifi_ap_get_sta_list(&wifi_sta_list);
     tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
 
-    if(adapter_sta_list.num) {
+    if (adapter_sta_list.num) {
         s.println("----- DHCP clients ---------");
         for (int i = 0; i < adapter_sta_list.num; i++) {
             tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
@@ -43,15 +63,14 @@ void getNetInfo(Stream & s) {
         }
     }
 
-
     s.println("=========== END ==========");
 }
 
 void getSysInfo(Stream &s) {
     EspClass esp;
 
-    uint32_t heap = esp.getHeapSize();      //total heap size
-    uint32_t freeheap = esp.getFreeHeap();  //available heap
+    uint32_t heap = esp.getHeapSize();      // total heap size
+    uint32_t freeheap = esp.getFreeHeap();  // available heap
     uint32_t heapUsedPc = (heap - freeheap) * 100 / heap;
 
     uint8_t chiprev = esp.getChipRevision();
@@ -107,7 +126,7 @@ void getSatellites(Stream &s) {
     s.printf("SVID\tAZ\tELEV\tSNR\n");
     while (it != Satellites.end()) {
         tGSV sat = it->second;
-        if(sat.Azimuth != NMEA0183DoubleNA && sat.Elevation != NMEA0183DoubleNA && sat.SNR != NMEA0183DoubleNA) {
+        if (sat.Azimuth != NMEA0183DoubleNA && sat.Elevation != NMEA0183DoubleNA && sat.SNR != NMEA0183DoubleNA) {
             s.printf("%d\t%g\t%g\t%g\n", sat.SVID, sat.Azimuth, sat.Elevation, sat.SNR);
         }
         it++;
@@ -116,7 +135,7 @@ void getSatellites(Stream &s) {
     s.println("================ END ===============");
 }
 
-void getSensors(Stream & s) {
+void getSensors(Stream &s) {
     std::map<String, String>::iterator it = Sensors.begin();
 
     s.println("=========== SENSORS ==========");
@@ -129,14 +148,14 @@ void getSensors(Stream & s) {
 }
 
 extern std::map<int, int> N2kMsgMap;
-void getN2kMsgs(Stream & s) {
+void getN2kMsgs(Stream &s) {
     std::map<int, int>::iterator it = N2kMsgMap.begin();
 
     s.println("======== N2K Messages ====");
 
-    while(it != N2kMsgMap.end()) {
+    while (it != N2kMsgMap.end()) {
         s.printf("%d %d\n", it->first, it->second);
         it++;
     }
-   s.println("=========== END ==========");    
+    s.println("=========== END ==========");
 }

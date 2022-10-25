@@ -1,9 +1,9 @@
 // bno055 functions
-#include <bno055_functions.h>
 #include <GwPrefs.h>
+#include <bno055_functions.h>
 
 // The BNo055 gyro/compass
-static BNO bno;  //create bno from the Class BNO
+static BNO bno;  // create bno from the Class BNO
 static bool bnoSaved = false;
 static bool hasBno55 = false;
 static double offset = 0.0;
@@ -37,14 +37,14 @@ void bno055_init(void) {
 
     bno.loadOffsets(100);
 
-    bno.startBNO(200, false);  //enables high_g interrupts and puts
-                               // the compass into fusion output mode
-                               // NDOF. First parameter controls the
-                               // threshold for the interrupt (0-255),
-                               // the second one enables INT pin forwarding.
-                               // the calibrartion is checked in the main loop
-                               // to prevent the setup stalling
-    
+    bno.startBNO(200, false);  // enables high_g interrupts and puts
+                               //  the compass into fusion output mode
+                               //  NDOF. First parameter controls the
+                               //  threshold for the interrupt (0-255),
+                               //  the second one enables INT pin forwarding.
+                               //  the calibrartion is checked in the main loop
+                               //  to prevent the setup stalling
+
     // Get the compass offset. This is to compensate for the physical
     // orientation of the compass in the boat
     String val = GwGetVal(COMPASSOFF, "0");
@@ -72,7 +72,7 @@ double bno055_heading_rads() {
 
     fheading = iheading + 0.0;
     fheading = fheading * PI / 180;
-  
+
 #if 0
     bno.getCalibration();
 
@@ -91,7 +91,7 @@ double bno055_heading_rads() {
 // Convert to degrees.
 double bno055_heading_degs() {
     double h = bno055_heading_rads();
-    if(h != NAN) {
+    if (h != NAN) {
         h *= RAD_TO_DEG;
     }
     return h;
