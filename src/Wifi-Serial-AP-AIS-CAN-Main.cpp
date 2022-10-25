@@ -852,9 +852,6 @@ void SendN2kEnvironment() {
         outsideTemp = bmp180_temperature();
         pressure = bmp180_pressure();
 
-        Console->printf("Pressure %f mbar\n", pressure / 100);
-        Console->printf("Temp %f C\n", outsideTemp);
-
         oled_printf(0, 4 * lineh, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
 
         SetN2kOutsideEnvironmentalParameters(N2kMsg, 0,
