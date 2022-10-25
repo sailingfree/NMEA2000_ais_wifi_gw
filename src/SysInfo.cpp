@@ -26,18 +26,21 @@ void getNetInfo(Stream & s) {
     esp_wifi_ap_get_sta_list(&wifi_sta_list);
     tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
 
-    for(int i = 0; i < adapter_sta_list.num; i++) {
-        tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
+    if(adapter_sta_list.num) {
+        s.println("----- DHCP clients ---------");
+        for (int i = 0; i < adapter_sta_list.num; i++) {
+            tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
 
-        s.printf("Station number %d \n", i);
-        s.printf("MAC: ");
-        for(int j =0; j< 6; j++) {
-            s.printf("%02X", station.mac[j]);
-            if(i<5) s.print(":");
+            s.printf("Station number %d \n", i);
+            s.printf("MAC: ");
+            for (int j = 0; j < 6; j++) {
+                s.printf("%02X", station.mac[j]);
+                if (i < 5) s.print(":");
+            }
+            s.printf("\nIP: ");
+            s.println(ip4addr_ntoa((const ip4_addr_t *)&(station.ip)));
+            s.println("");
         }
-        s.printf("\nIP: ");
-        s.println(ip4addr_ntoa((const ip4_addr_t*)&(station.ip)));
-        s.println("");
     }
 
 
