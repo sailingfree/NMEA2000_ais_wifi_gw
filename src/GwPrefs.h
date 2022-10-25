@@ -11,6 +11,9 @@ void GwListRegs(Stream &s);
 bool isGwKey(String k);
 void GwPrint(Stream &s);
 
+// WiFi mode. Can be AP CL OFF
+#define WIFIMODE "wifi"
+
 // the keys we support
 // SSID for the two optional wifi networks to try
 #define SSID1 "ssid1"

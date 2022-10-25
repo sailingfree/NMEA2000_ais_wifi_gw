@@ -16,6 +16,7 @@ static bool doneInit = false;
 void GwPrefsInit() {
     if (!doneInit) {
         Reg.clear();
+        Reg.push_back(WIFIMODE);
         Reg.push_back(SSID1);
         Reg.push_back(SSID2);
         Reg.push_back(SSPW1);
