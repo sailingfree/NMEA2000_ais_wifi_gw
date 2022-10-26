@@ -842,7 +842,7 @@ void SendN2kEnvironment() {
         SetNextUpdate(VerySlowDataUpdated, VerySlowDataUpdatePeriod);
 
         // read the sensors. The temperature should be done first
-        // See hte bmp180 docs and examples
+        // See the bmp180 docs and examples
         outsideTemp = bmp180_temperature();
         pressure = bmp180_pressure();
 
@@ -855,6 +855,8 @@ void SendN2kEnvironment() {
 
         Sensors["Outside temp"] = String(outsideTemp);
         Sensors["Pressure"] = String(pressure / 100);
+
+        GwSendYD(N2kMsg);
     }
 }
 
