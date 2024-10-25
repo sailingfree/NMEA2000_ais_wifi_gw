@@ -61,6 +61,8 @@
 #include "N2kDeviceList.h"
 #include "NMEA0183Handlers.h"
 
+#include <YDtoN2KUDP.h>
+
 template <class T>
 using LinkedList = std::list<T>;
 
@@ -437,8 +439,15 @@ void N2kToYD_Can(const tN2kMsg &msg, char *MsgBuf) {
 #define Max_YD_Message_Size 500
 char YD_msg[Max_YD_Message_Size] = "";
 
-// Create UDP instance
-WiFiUDP udp;
+// Create UDP instance for sending YD messages
+WiFiUDP     udp;
+
+// The UDP yacht data reader
+YDtoN2kUDP  ydtoN2kUDP;
+
+// The wifi UDP socket
+WiFiUDP     wifiUdp;
+
 
 // Send to Yacht device clients over udp using the cast address
 void GwSendYD(const tN2kMsg &N2kMsg) {
@@ -451,18 +460,27 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
 
     char buf[MAX_NMEA2000_MESSAGE_SEASMART_SIZE];
     if (N2kToSeasmart(N2kMsg, millis(), buf, MAX_NMEA2000_MESSAGE_SEASMART_SIZE) == 0) return;
-
-    udp.beginPacket(udpAddress, 4445);
-    udp.println(buf);
-    udp.endPacket();
 }
 
 // Handle some other gw messages from other gw nodes
 void handle_gw_msgs(const tN2kMsg &N2kMsg) {
     ulong PGN = N2kMsg.PGN;
-
-    if (PGN == 127508L) {
-        GwSendYD(N2kMsg);
+\
+    switch (PGN) {
+        case 127508L:   // Battery
+        case 127488:    // Engine rapid
+        case 130306:    // Wind
+        case 129026:    // SOG/COG
+        case 128267:    // Depth
+        case 129029:    // GNSS
+        case 129540:    // GNSS sats in view
+        case 130310:    // Outside environment
+        case 130312:    // Temperature
+        case 130313:    // Humidity
+        case 130314:    // Pressure
+        default:
+            GwSendYD(N2kMsg);
+            break;
     }
 }
 
@@ -528,7 +546,7 @@ void setup() {
         bmp180_init();
 
         // Init the BNo055 gyro
-        bno055_init();
+      //  bno055_init();
 
         // Init the oled display
         oled_init();
@@ -622,6 +640,9 @@ void setup() {
 
     // Start the telnet server
     telnet.begin();
+
+    // start the YD UDP socket
+    ydtoN2kUDP.begin(4445);
 
     // Start Web Server
     webserver.on("/", handleRoot);
@@ -1036,6 +1057,20 @@ void ListDevices(Stream &stream, bool force = false) {
     }
 }
 
+// Handle any YD messages received 
+// Read the YD data, decode the N2K messages
+// and update the screen copies.
+void YDWork(void) {
+    tN2kMsg msg;
+
+//    if (WiFi.status() == WL_CONNECTED) {
+        while (ydtoN2kUDP.readYD(msg)) {
+            NMEA2000.RunMessageHandlers(msg);
+            Serial.printf("YD Msg PGN %d\n", msg.PGN);
+        }
+//    }
+}
+
 // Main application loop.
 void loop() {
     int wifi_retry;
@@ -1051,6 +1086,9 @@ void loop() {
 
     // Process any n2k messages
     NMEA2000.ParseMessages();
+
+    // Process any received YD messages
+    YDWork();
 
 #ifdef HAVE_NMEA0183
     // Read and handle the standard messages
