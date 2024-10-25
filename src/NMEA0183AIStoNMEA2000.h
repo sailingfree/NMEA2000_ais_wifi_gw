@@ -99,7 +99,6 @@ class MyAisDecoder : public AIS::AisDecoder
     }
 
     virtual void onType9(unsigned int , unsigned int , bool , int , int , int , unsigned int ) override {
-//      Serial.println("9");
     }
 
     virtual void onType14(unsigned int _repeat, unsigned int _uMmsi,
