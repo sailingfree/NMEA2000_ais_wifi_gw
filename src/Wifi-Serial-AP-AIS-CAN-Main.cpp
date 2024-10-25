@@ -1107,7 +1107,7 @@ void loop() {
 
     SendN2kEnvironment();
     //  SendN2kCompass();
-    SendN2kEngineSlow();
+    // SendN2kEngineSlow();   // The engine parameters are now sent from the engine monitor module
     CheckConnections();
     NMEA2000.ParseMessages();
 

@@ -1,5 +1,6 @@
 // Naiad AIS Handler
 
+
 #include <AisHandler.h>
 
 MyAisDecoder decoder;               // Create decoder object
