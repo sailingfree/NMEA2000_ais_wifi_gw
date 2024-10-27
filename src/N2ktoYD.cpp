@@ -80,7 +80,7 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
 
 // Handle any YD messages received
 // Read the YD data, decode the N2K messages
-void YDWork(void) {
+void handleIncomingYD(void) {
     tN2kMsg msg;
 
     while (YDRecvUDP.readYD(msg)) {

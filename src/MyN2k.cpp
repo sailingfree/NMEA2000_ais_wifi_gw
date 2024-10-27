@@ -15,29 +15,28 @@
 #include <map>
 #include <bmp180_functions.h>
 #include <GwDefs.h>
+#include <StringStream.h>
 
 #define MiscSendOffset 120
 #define VerySlowDataUpdatePeriod 10000  // temperature etc
 #define SlowDataUpdatePeriod 1000       // Time between CAN Messages sent
 #define FastDataUpdatePeriod 100        // Fast data period
 
-
-
 /////// Variables
 using namespace std;
 
 // List of n2k devices for the device scanner
-tN2kDeviceList *pN2kDeviceList;
+tN2kDeviceList* pN2kDeviceList;
 
 
 // Set the information for other bus devices, which messages we support
-const unsigned long TransmitMessages[] PROGMEM = {127489L,  // Engine dynamic
+static const unsigned long TransmitMessages[] PROGMEM = { 127489L,  // Engine dynamic
                                                   127488L,  // Engine fast dynamic
                                                   127250,   // Vessel heading
                                                   130577,   // Direction data
                                                   130310,   // Outside environmental
-                                                  0};
-const unsigned long ReceiveMessages[] PROGMEM = {/*126992L,*/  // System time
+                                                  0 };
+static const unsigned long ReceiveMessages[] PROGMEM = {/*126992L,*/  // System time
                                                  127250L,      // Heading
                                                  127258L,      // Magnetic variation
                                                  128259UL,     // Boat speed
@@ -48,28 +47,28 @@ const unsigned long ReceiveMessages[] PROGMEM = {/*126992L,*/  // System time
                                                  130306L,      // Wind
                                                  128275UL,     // Log
                                                  127245UL,     // Rudder
-                                                 0};
+                                                 0 };
 
 
 
 // Handle some other gw messages from other gw nodes
-void handle_gw_msgs(const tN2kMsg &N2kMsg) {
+static void handle_gw_msgs(const tN2kMsg& N2kMsg) {
     ulong PGN = N2kMsg.PGN;
     switch (PGN) {
-        case 127508L:   // Battery
-        case 127488:    // Engine rapid
-        case 130306:    // Wind
-        case 129026:    // SOG/COG
-        case 128267:    // Depth
-        case 129029:    // GNSS
-        case 129540:    // GNSS sats in view
-        case 130310:    // Outside environment
-        case 130312:    // Temperature
-        case 130313:    // Humidity
-        case 130314:    // Pressure
-        default:
-            GwSendYD(N2kMsg);
-            break;
+    case 127508L:   // Battery
+    case 127488:    // Engine rapid
+    case 130306:    // Wind
+    case 129026:    // SOG/COG
+    case 128267:    // Depth
+    case 129029:    // GNSS
+    case 129540:    // GNSS sats in view
+    case 130310:    // Outside environment
+    case 130312:    // Temperature
+    case 130313:    // Humidity
+    case 130314:    // Pressure
+    default:
+        GwSendYD(N2kMsg);
+        break;
     }
 }
 
@@ -77,7 +76,7 @@ void handle_gw_msgs(const tN2kMsg &N2kMsg) {
 
 
 void initN2k(uint32_t id) {
-   // Reserve enough buffer for sending all messages. This does not work on small memory devices like Uno or Mega
+    // Reserve enough buffer for sending all messages. This does not work on small memory devices like Uno or Mega
 
     NMEA2000.SetN2kCANMsgBufSize(8);
     NMEA2000.SetN2kCANReceiveFrameBufSize(250);
@@ -87,23 +86,23 @@ void initN2k(uint32_t id) {
     pN2kDeviceList = new tN2kDeviceList(&NMEA2000);
 
     NMEA2000.SetProductInformation(hostName.c_str(),     // Manufacturer's Model serial code
-                                   100,                   // Manufacturer's product code
-                                   modelName.c_str(),         // Manufacturer's Model ID
-                                   "1.0.0 (2021-06-11)",  // Manufacturer's Software version code
-                                   "1.0.0 (2021-06-11)"   // Manufacturer's Model version
+        100,                   // Manufacturer's product code
+        modelName.c_str(),         // Manufacturer's Model ID
+        "1.0.0 (2021-06-11)",  // Manufacturer's Software version code
+        "1.0.0 (2021-06-11)"   // Manufacturer's Model version
     );
     // Set device information
     NMEA2000.SetDeviceInformation(id,   // Unique number. Use e.g. Serial number. Id is generated from MAC-Address
-                                  130,  // Device function=Analog to NMEA 2000 Gateway. See codes on http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
-                                  25,   // Device class=Inter/Intranetwork Device. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
-                                  2046  // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
+        130,  // Device function=Analog to NMEA 2000 Gateway. See codes on http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+        25,   // Device class=Inter/Intranetwork Device. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+        2046  // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
     );
 
     oledPrintf(0, lineh * 2, "My ID 0x%x", id);
 
     NMEA2000.SetConfigurationInformation("Naiad ",
-                                         "Must be installed internally, not water or dust proof.",
-                                         "Connect AIS NMEA at 34000");
+        "Must be installed internally, not water or dust proof.",
+        "Connect AIS NMEA at 34000");
 
     // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
     NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);  // Show in clear text. Leave uncommented for default Actisense format.
@@ -121,18 +120,19 @@ void initN2k(uint32_t id) {
     NMEA2000.Open();
 }
 
-bool IsTimeToUpdate(unsigned long NextUpdate) {
+static bool IsTimeToUpdate(unsigned long NextUpdate) {
     return (NextUpdate < millis());
 }
-unsigned long InitNextUpdate(unsigned long Period, unsigned long Offset = 0) {
+
+static unsigned long InitNextUpdate(unsigned long Period, unsigned long Offset = 0) {
     return millis() + Period + Offset;
 }
 
-void SetNextUpdate(unsigned long &NextUpdate, unsigned long Period) {
+static void SetNextUpdate(unsigned long& NextUpdate, unsigned long Period) {
     while (NextUpdate < millis()) NextUpdate += Period;
 }
 
-void SendN2kEngineSlow() {
+static void SendN2kEngineSlow() {
     static unsigned long SlowDataUpdated = InitNextUpdate(SlowDataUpdatePeriod, MiscSendOffset);
     tN2kMsg N2kMsg;
 
@@ -140,15 +140,15 @@ void SendN2kEngineSlow() {
         SetNextUpdate(SlowDataUpdated, SlowDataUpdatePeriod);
 
         SetN2kEngineDynamicParam(N2kMsg, 0,
-                                 N2kDoubleNA,      // Oil Pressure
-                                 N2kDoubleNA,      // Oil temp
-                                 CToKelvin(temp),  // Coolant temp
-                                 voltage,          // alternator voltage
-                                 N2kDoubleNA,      // fule rate
-                                 N2kDoubleNA,      // engine hours
-                                 N2kDoubleNA,      // coolant pressure
-                                 N2kDoubleNA,      // fuel pressure
-                                 N2kInt8NA, N2kInt8NA, true);
+            N2kDoubleNA,      // Oil Pressure
+            N2kDoubleNA,      // Oil temp
+            CToKelvin(temp),  // Coolant temp
+            voltage,          // alternator voltage
+            N2kDoubleNA,      // fule rate
+            N2kDoubleNA,      // engine hours
+            N2kDoubleNA,      // coolant pressure
+            N2kDoubleNA,      // fuel pressure
+            N2kInt8NA, N2kInt8NA, true);
         NMEA2000.SendMsg(N2kMsg);
         GwSendYD(N2kMsg);
 
@@ -157,7 +157,7 @@ void SendN2kEngineSlow() {
 }
 
 //*****************************************************************************
-void PrintUlongList(const char *prefix, const unsigned long *List, Stream &stream) {
+static void PrintUlongList(const char* prefix, const unsigned long* List, Stream& stream) {
     uint8_t i;
     if (List != 0) {
         stream.printf(prefix);
@@ -170,7 +170,7 @@ void PrintUlongList(const char *prefix, const unsigned long *List, Stream &strea
 }
 
 //*****************************************************************************
-void PrintText(const char *Text, bool AddLineFeed, Stream &stream) {
+static void PrintText(const char* Text, bool AddLineFeed, Stream& stream) {
     if (Text != 0)
         stream.print(Text);
     if (AddLineFeed)
@@ -178,7 +178,7 @@ void PrintText(const char *Text, bool AddLineFeed, Stream &stream) {
 }
 
 //*****************************************************************************
-void PrintDevice(const tNMEA2000::tDevice *pDevice, Stream &stream) {
+static void PrintDevice(const tNMEA2000::tDevice* pDevice, Stream& stream) {
     if (pDevice == 0) return;
 
     stream.printf("----------------------------------------------------------------------\n");
@@ -202,7 +202,7 @@ void PrintDevice(const tNMEA2000::tDevice *pDevice, Stream &stream) {
 
 
 
-void SendN2kEnvironment() {
+static void SendN2kEnvironment() {
     static unsigned long VerySlowDataUpdated = InitNextUpdate(VerySlowDataUpdatePeriod, MiscSendOffset);
     tN2kMsg N2kMsg;
     double waterTemp = 0.0, outsideTemp = 0.0, pressure = 0.0;
@@ -218,9 +218,9 @@ void SendN2kEnvironment() {
         oledPrintf(0, 4 * lineh, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
 
         SetN2kOutsideEnvironmentalParameters(N2kMsg, 0,
-                                             waterTemp,
-                                             outsideTemp,
-                                             pressure);
+            waterTemp,
+            outsideTemp,
+            pressure);
 
         mapSensors["Outside temp"] = String(outsideTemp);
         mapSensors["Pressure"] = String(pressure / 100);
@@ -231,7 +231,7 @@ void SendN2kEnvironment() {
 
 #define START_DELAY_IN_S 8
 //*****************************************************************************
-void ListDevices(Stream &stream, bool force = false) {
+void ListDevices(Stream& stream, bool force = false) {
     static bool StartDelayDone = false;
     static int StartDelayCount = 0;
     static unsigned long NextStartDelay = 0;
@@ -262,6 +262,9 @@ void ListDevices(Stream &stream, bool force = false) {
 }
 
 void handleN2k() {
+    static time_t last = 0;
+    time_t now = time(NULL);
+
     SendN2kEnvironment();
 
     NMEA2000.ParseMessages();
@@ -272,5 +275,17 @@ void handleN2k() {
         GwSetVal(LASTNODEADDRESS, String(SourceAddress));
         Console->printf("Address Change: New Address=%d\n", SourceAddress);
     }
+
+    // Print the devices out at intervals
+    StringStream s;
+    if (now > last + 30) {
+        ListDevices(s, true);
+        last = now;
+    }
+    else {
+        ListDevices(s, false);
+    }
+    Console->print(s.data);
+
 }
 

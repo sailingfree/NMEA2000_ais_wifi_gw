@@ -171,26 +171,13 @@ void setup() {
 // Main application loop.
 void loop() {
 
-    static time_t last = 0;
-    static time_t last2 = 0;
-    time_t now = time(NULL);
-
-    // Process any n2k messages
+    // Process any n2k messages and send to YD UDP port
     handleN2k();
 
     // Process any received YD messages
-    YDWork();
+    handleIncomingYD();
 
-    StringStream s;
-    if (now > last + 30) {
-        ListDevices(s, true);
-        last = now;
-    } else {
-        ListDevices(s, false);
-    }
-    Console->print(s.data);
-
-    // Handle any over the air updates
+     // Handle any over the air updates
     handleOta();
 
     // Show we have some activity on the oled screen
