@@ -20,6 +20,6 @@
 
 #define I2C_ADDRESS 0x77
 
-void bmp180_init();
-double bmp180_temperature(void);
-double bmp180_pressure(void);
+void bmp180Init();
+double bmp180Temperature(void);
+double bmp180Pressure(void);

@@ -24,7 +24,7 @@ const double knToms = 1852.0 / 3600.0;
 const double degToRad = pi / 180.0;
 const double nmTom = 1.852 * 1000;
 
-uint16_t DaysSince1970 = 0;
+uint16_t daysSince1970 = 0;
 
 
     MyAisDecoder::MyAisDecoder()
@@ -66,7 +66,7 @@ uint16_t DaysSince1970 = 0;
 
       // Necessary due to conflict with TimeLib.h (redefinition of tmElements_t)
 
-      time_t t = DaysSince1970 * (24UL * 3600UL);
+      time_t t = daysSince1970 * (24UL * 3600UL);
       tmElements_t tm;
 
       tNMEA0183Msg::breakTime(t, tm);

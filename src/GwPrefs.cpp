@@ -33,7 +33,7 @@ static Preferences shellPref;
 static const char* prefname = "settings";
 static bool doneInit = false;
 
-void GwPrefsInit() {
+void gwPrefsInit() {
     if (!doneInit) {
         Reg.clear();
         Reg.push_back(WIFIMODE);
@@ -59,7 +59,7 @@ void GwPrint(Stream& s) {
     //   GwPrefsInit();
     s.printf("Preferences\n");
     for (String str : Reg) {
-        String val = GwGetVal(str.c_str());
+        String val = gwGetVal(str.c_str());
         s.printf("%s : %s\n", str.c_str(), val.c_str());
     }
 }
@@ -84,7 +84,7 @@ void GwListRegs(Stream& s) {
     }
 }
 
-String GwGetVal(const char* key, String defval) {
+String gwGetVal(const char* key, String defval) {
     // GwPrefsInit();
     shellPref.begin(prefname, false);
     String val = shellPref.getString(key);

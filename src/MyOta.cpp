@@ -6,7 +6,7 @@
 
 #ifdef USE_ARDUINO_OTA
 // Initialize the Arduino OTA
-void initializeOTA() {
+void initOTA() {
     // TODO: option to authentication (password)
     Console->println("OTA Started");
 

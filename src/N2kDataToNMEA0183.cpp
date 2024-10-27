@@ -38,7 +38,7 @@ void GwSendYD(const tN2kMsg &N2kMsg);
 void tN2kDataToNMEA0183::HandleMsg(const tN2kMsg &N2kMsg) {
     //Console->printf("N2K %d\n", N2kMsg.PGN);
     GwSendYD(N2kMsg);
-    N2kMsgMap[N2kMsg.PGN]++;
+    mapN2kMsg[N2kMsg.PGN]++;
     switch (N2kMsg.PGN) {
         case 127250UL:
             HandleHeading(N2kMsg);
@@ -85,10 +85,10 @@ long tN2kDataToNMEA0183::Update(tBoatData *BoatData) {
         TWD = 0;
     }
 
-    BoatData->Latitude = Latitude;
-    BoatData->Longitude = Longitude;
-    BoatData->Altitude = Altitude;
-    BoatData->Heading = Heading * radToDeg;
+    BoatData->latitude = Latitude;
+    BoatData->longitude = Longitude;
+    BoatData->altitude = Altitude;
+    BoatData->heading = Heading * radToDeg;
     BoatData->COG = COG * radToDeg;
     BoatData->SOG = SOG * 3600.0 / 1852.0;
     BoatData->STW = STW * 3600.0 / 1852.0;
@@ -106,9 +106,9 @@ long tN2kDataToNMEA0183::Update(tBoatData *BoatData) {
     BoatData->RudderPosition = RudderPosition * radToDeg;
     BoatData->WaterTemperature = KelvinToC(WaterTemperature);
     BoatData->WaterDepth = WaterDepth;
-    BoatData->Variation = Variation * radToDeg;
+    BoatData->variation = Variation * radToDeg;
     BoatData->GPSTime = SecondsSinceMidnight;
-    BoatData->DaysSince1970 = DaysSince1970;
+    BoatData->daysSince1970 = DaysSince1970;
 
     if (SecondsSinceMidnight != N2kDoubleNA && DaysSince1970 != N2kUInt16NA) {
         return ((DaysSince1970 * 3600 * 24) + SecondsSinceMidnight);  // Needed for SD Filename and time

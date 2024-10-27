@@ -28,7 +28,7 @@ SSD1306Wire display(0x3c, SDA, SCL);  // ADDRESS, SDA, SCL  -  SDA and SCL usual
 
 int lineh;
 static bool has_oled = false;
-void oled_init(void) {
+void oledInit(void) {
     // Initialising the UI will init the display too.
     display.init();
     if (!display.connect()) {
@@ -48,7 +48,7 @@ void oled_init(void) {
     display.display();
 }
 
-void oled_write(int x, int y, const char* str) {
+void oledWrite(int x, int y, const char* str) {
     if (!has_oled) {
         return;
     }
@@ -64,7 +64,7 @@ void oled_write(int x, int y, const char* str) {
     display.display();
 }
 
-void oled_printf(int x, int y, const char* fmt, ...) {
+void oledPrintf(int x, int y, const char* fmt, ...) {
     char buffer[128];
     if (!has_oled) {
         return;
@@ -74,5 +74,5 @@ void oled_printf(int x, int y, const char* fmt, ...) {
     va_start(myargs, fmt);
     vsprintf(buffer, fmt, myargs);
     va_end(myargs);
-    oled_write(x, y, buffer);
+    oledWrite(x, y, buffer);
 }

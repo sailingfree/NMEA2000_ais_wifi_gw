@@ -13,6 +13,9 @@
 // We listenon this port
 static const int YDudpPort = 4444;  // port 4444 is for the Yacht devices interface
 
+// Create UDP instance for sending YD messages
+WiFiUDP     YDSendUDP;
+
 // The buffer to construct YD messages
 #define Max_YD_Message_Size 500
 static char YD_msg[Max_YD_Message_Size] = "";
@@ -21,8 +24,8 @@ static char YD_msg[Max_YD_Message_Size] = "";
  * @name: N2kToYD_Can
  */
 void N2kToYD_Can(const tN2kMsg &msg, char *MsgBuf) {
-    unsigned long DaysSince1970 = BoatData.DaysSince1970;
-    double SecondsSinceMidnight = BoatData.GPSTime;
+    unsigned long DaysSince1970 = boatData.daysSince1970;
+    double SecondsSinceMidnight = boatData.GPSTime;
     int i, len;
     uint32_t canId = 0;
     char time_str[20];
@@ -67,9 +70,9 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
     IPAddress udpAddress = WiFi.broadcastIP();
     udpAddress.fromString("192.168.15.255");
     N2kToYD_Can(N2kMsg, YD_msg);             // Create YD message from PGN
-    udp.beginPacket(udpAddress, YDudpPort);  // Send to UDP
-    udp.printf("%s\r\n", YD_msg);
-    udp.endPacket();
+    YDSendUDP.beginPacket(udpAddress, YDudpPort);  // Send to UDP
+    YDSendUDP.printf("%s\r\n", YD_msg);
+    YDSendUDP.endPacket();
 
     char buf[MAX_NMEA2000_MESSAGE_SEASMART_SIZE];
     if (N2kToSeasmart(N2kMsg, millis(), buf, MAX_NMEA2000_MESSAGE_SEASMART_SIZE) == 0) return;
@@ -80,7 +83,7 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
 void YDWork(void) {
     tN2kMsg msg;
 
-    while (ydtoN2kUDP.readYD(msg)) {
+    while (YDRecvUDP.readYD(msg)) {
         NMEA2000.RunMessageHandlers(msg);
         Serial.printf("YD Msg PGN %d\n", msg.PGN);
     }

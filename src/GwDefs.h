@@ -10,26 +10,27 @@
 #include <NMEA0183.h>
 #include <map>
 
-extern Stream * Console;
-extern tBoatData BoatData;
-extern WiFiUDP udp;
-extern YDtoN2kUDP ydtoN2kUDP;
-extern tNMEA2000 &NMEA2000;
+extern Stream* Console;
+extern tBoatData boatData;
+extern YDtoN2kUDP YDRecvUDP;
+extern tNMEA2000& NMEA2000;
 extern String hostName;
 extern tNMEA0183 AIS_NMEA0183;
-extern uint16_t DaysSince1970;
-extern double SecondsSinceMidnight;
-extern std::map<String, String> Gps;
-extern std::map<String, String> Sensors;
-extern std::map<int, int> N2kMsgMap;
+extern uint16_t daysSince1970;
+extern double secondsSinceMidnight;
+extern std::map<String, String> mapGps;
+extern std::map<String, String> mapSensors;
+extern std::map<int, int> mapN2kMsg;
 
 
-extern String WifiMode, WifiIP, WifiSSID;
+extern String wifiMode, wifiIP, wifiSSID;
+extern WiFiServer telnetServer;
+extern WiFiServer jsonServer;
 extern String hostName, macAddress;
 
-extern int NodeAddress;
+extern int nodeAddress;
 extern String hostName;
-extern String Model;
+extern String modelName;
 extern float temp;
 extern float voltage;
 

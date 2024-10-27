@@ -39,9 +39,9 @@ IPAddress UnitIP;  // The address of this device. Could be client or AP
 using tWiFiClientPtr = std::shared_ptr<WiFiClient>;
 LinkedList<tWiFiClientPtr> clients;
 
-String WifiMode = "Unknown";
-String WifiSSID = "Unknown";
-String WifiIP = "Unknown";
+String wifiMode = "Unknown";
+String wifiSSID = "Unknown";
+String wifiIP = "Unknown";
 
 void WiFiEvent(WiFiEvent_t event) {
     Serial.printf("[WiFi-event] event: %d\n", event);
@@ -136,13 +136,13 @@ void WiFiEvent(WiFiEvent_t event) {
 
 void initWifi(String& host_name) {
     // setup the WiFI map from the preferences
-    wifiCreds[0].ssid = GwGetVal(SSID1);
-    wifiCreds[0].pass = GwGetVal(SSPW1);
-    wifiCreds[1].ssid = GwGetVal(SSID2);
-    wifiCreds[1].pass = GwGetVal(SSPW2);
+    wifiCreds[0].ssid = gwGetVal(SSID1);
+    wifiCreds[0].pass = gwGetVal(SSPW1);
+    wifiCreds[1].ssid = gwGetVal(SSID2);
+    wifiCreds[1].pass = gwGetVal(SSPW2);
 
     // Setup params if we are to be an AP
-    AP_password = GwGetVal(GWPASS);
+    AP_password = gwGetVal(GWPASS);
 
     if (WLAN_CLIENT == 1) {
         Console->println("Start WLAN Client");  // WiFi Mode Client
@@ -164,10 +164,10 @@ void initWifi(String& host_name) {
         Console->printf("AP IP address %s GW %s Netmask %s SSID %s PW %s\n",
                         UnitIP.toString(), AP_gateway.toString(), AP_subnet.toString(), AP_ssid.c_str(), AP_password.c_str());
         wifiType = 1;
-        oled_printf(0, lineh, "AP %s", UnitIP.toString().c_str());
-        WifiMode = "AP";
-        WifiIP = UnitIP.toString();
-        WifiSSID = AP_ssid;
+        oledPrintf(0, lineh, "AP %s", UnitIP.toString().c_str());
+        wifiMode = "AP";
+        wifiIP = UnitIP.toString();
+        wifiSSID = AP_ssid;
 
     } else {  // Wifi Client connection was sucessfull
 
@@ -176,7 +176,7 @@ void initWifi(String& host_name) {
         Console->println("IP client address: ");
         Console->println(WiFi.localIP());
         UnitIP = WiFi.localIP();
-        oled_printf(0, lineh, "Client %s", WiFi.localIP().toString().c_str());
+        oledPrintf(0, lineh, "Client %s", WiFi.localIP().toString().c_str());
     }
 }
 
@@ -202,9 +202,9 @@ bool connectWifi() {
         }
         Console->println("");
         if (WiFi.status() == WL_CONNECTED) {
-            WifiMode = "Client";
-            WifiSSID = wifiCreds[i].ssid;
-            WifiIP = WiFi.localIP().toString();
+            wifiMode = "Client";
+            wifiSSID = wifiCreds[i].ssid;
+            wifiIP = WiFi.localIP().toString();
             Console->printf("Connected to %s\n", wifiCreds[i].ssid.c_str());
             return true;
         } else {
@@ -219,7 +219,7 @@ void disconnectWifi() {
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
     WiFi.mode(WIFI_STA);
-    WifiMode = "Not connected";
+    wifiMode = "Not connected";
 }
 
 void checkWifi() {

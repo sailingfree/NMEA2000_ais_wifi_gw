@@ -9,7 +9,7 @@ BMP180I2C bmp180(I2C_ADDRESS);
 
 static bool hasBMP180 = false;
 
-void bmp180_init() {
+void bmp180Init() {
     // Initilaise the bmp180 pressure/tempertaure sensor
     // begin() initializes the interface, checks the sensor ID and reads the calibration parameters.
     if (!bmp180.begin()) {
@@ -26,7 +26,7 @@ void bmp180_init() {
     hasBMP180 = true;
 }
 
-double bmp180_temperature() {
+double bmp180Temperature() {
     double temp = 0.0;
     int count = 100;
     bool hasTemperature = false;
@@ -52,7 +52,7 @@ double bmp180_temperature() {
     return temp;
 }
 
-double bmp180_pressure() {
+double bmp180Pressure() {
     double pressure = 0.0;
     int count = 10;
     bool hasPressure = false;

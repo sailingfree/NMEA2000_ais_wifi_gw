@@ -123,7 +123,7 @@ int getval(int argc, char ** argv) {
         return 0;
     }
 
-    String val = GwGetVal(key);
+    String val = gwGetVal(key);
     shell.printf("%s -> %s\n", key, val.c_str());
     return 0;
 }

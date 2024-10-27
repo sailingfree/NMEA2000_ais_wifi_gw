@@ -1,3 +1,6 @@
+#define ESP32_CAN_TX_PIN GPIO_NUM_5  // Set CAN TX port to 5 (Caution!!! Pin 2 before)
+#define ESP32_CAN_RX_PIN GPIO_NUM_4  // Set CAN RX port to 4
+
 #include <Arduino.h>
 #include <NMEA2000.h>
 #include <NMEA2000_CAN.h>
@@ -25,7 +28,7 @@
 using namespace std;
 
 // List of n2k devices for the device scanner
-extern tN2kDeviceList *pN2kDeviceList;
+tN2kDeviceList *pN2kDeviceList;
 
 
 // Set the information for other bus devices, which messages we support
@@ -86,7 +89,7 @@ void initN2k(uint32_t id) {
 
     NMEA2000.SetProductInformation(hostName.c_str(),     // Manufacturer's Model serial code
                                    100,                   // Manufacturer's product code
-                                   Model.c_str(),         // Manufacturer's Model ID
+                                   modelName.c_str(),         // Manufacturer's Model ID
                                    "1.0.0 (2021-06-11)",  // Manufacturer's Software version code
                                    "1.0.0 (2021-06-11)"   // Manufacturer's Model version
     );
@@ -97,7 +100,7 @@ void initN2k(uint32_t id) {
                                   2046  // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
     );
 
-    oled_printf(0, lineh * 2, "My ID 0x%x", id);
+    oledPrintf(0, lineh * 2, "My ID 0x%x", id);
 
     NMEA2000.SetConfigurationInformation("Naiad ",
                                          "Must be installed internally, not water or dust proof.",
@@ -108,11 +111,11 @@ void initN2k(uint32_t id) {
 
     NMEA2000.SetMsgHandler(handle_gw_msgs);
 
-    NodeAddress = GwGetVal(LASTNODEADDRESS, "32").toInt();
+    nodeAddress = gwGetVal(LASTNODEADDRESS, "32").toInt();
 
-    Console->printf("NodeAddress=%d\n", NodeAddress);
+    Console->printf("NodeAddress=%d\n", nodeAddress);
 
-    NMEA2000.SetMode(tNMEA2000::N2km_ListenAndNode, NodeAddress);
+    NMEA2000.SetMode(tNMEA2000::N2km_ListenAndNode, nodeAddress);
 
     NMEA2000.ExtendTransmitMessages(TransmitMessages);
     NMEA2000.ExtendReceiveMessages(ReceiveMessages);
@@ -150,7 +153,7 @@ void SendN2kEngineSlow() {
         NMEA2000.SendMsg(N2kMsg);
         GwSendYD(N2kMsg);
 
-        Sensors["Voltage"] = String(voltage);
+        mapSensors["Voltage"] = String(voltage);
     }
 }
 
@@ -210,18 +213,18 @@ void SendN2kEnvironment() {
 
         // read the sensors. The temperature should be done first
         // See the bmp180 docs and examples
-        outsideTemp = bmp180_temperature();
-        pressure = bmp180_pressure();
+        outsideTemp = bmp180Temperature();
+        pressure = bmp180Pressure();
 
-        oled_printf(0, 4 * lineh, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
+        oledPrintf(0, 4 * lineh, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
 
         SetN2kOutsideEnvironmentalParameters(N2kMsg, 0,
                                              waterTemp,
                                              outsideTemp,
                                              pressure);
 
-        Sensors["Outside temp"] = String(outsideTemp);
-        Sensors["Pressure"] = String(pressure / 100);
+        mapSensors["Outside temp"] = String(outsideTemp);
+        mapSensors["Pressure"] = String(pressure / 100);
 
         GwSendYD(N2kMsg);
     }
@@ -265,8 +268,8 @@ void handleN2k() {
     NMEA2000.ParseMessages();
 
     int SourceAddress = NMEA2000.GetN2kSource();
-    if (SourceAddress != NodeAddress) {  // Save potentially changed Source Address to NVS memory
-        NodeAddress = SourceAddress;     // Set new Node Address (to save only once)
+    if (SourceAddress != nodeAddress) {  // Save potentially changed Source Address to NVS memory
+        nodeAddress = SourceAddress;     // Set new Node Address (to save only once)
         GwSetVal(LASTNODEADDRESS, String(SourceAddress));
         Console->printf("Address Change: New Address=%d\n", SourceAddress);
     }

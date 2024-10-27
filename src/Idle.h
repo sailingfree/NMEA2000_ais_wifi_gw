@@ -23,7 +23,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #pragma once
 
-void IdleInit();
+void initIdle();
 void idleLoop(void* parameter);
 int getCpuAvg(int core);
 void calibrateCpu();

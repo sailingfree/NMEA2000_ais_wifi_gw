@@ -16,27 +16,27 @@ static const tNMEA2000Handler NMEA2000Handlers[] = {
 //*****************************************************************************
 template <typename T>
 void PrintLabelValWithConversionCheckUnDef(const char *label, T val, double (*ConvFunc)(double val) = 0, bool AddLf = false, int8_t Desim = -1) {
-    if(!OutputStream) {
+    if(!outputStream) {
       return;
     }
-    OutputStream->print(label);
+    outputStream->print(label);
     if (!N2kIsNA(val)) {
         if (Desim < 0) {
             if (ConvFunc) {
-                OutputStream->print(ConvFunc(val));
+                outputStream->print(ConvFunc(val));
             } else {
-                OutputStream->print(val);
+                outputStream->print(val);
             }
         } else {
             if (ConvFunc) {
-                OutputStream->print(ConvFunc(val), Desim);
+                outputStream->print(ConvFunc(val), Desim);
             } else {
-                OutputStream->print(val, Desim);
+                outputStream->print(val, Desim);
             }
         }
     } else
-        OutputStream->print("not available");
-    if (AddLf) OutputStream->println();
+        outputStream->print("not available");
+    if (AddLf) outputStream->println();
 }
 
 
@@ -48,20 +48,20 @@ void Heading(const tN2kMsg &N2kMsg) {
     double Deviation;
     double Variation;
 
-    if(!OutputStream) {
+    if(!outputStream) {
       return;
     }
     if (ParseN2kHeading(N2kMsg, SID, Heading, Deviation, Variation, HeadingReference)) {
-        OutputStream->println("Heading:");
+        outputStream->println("Heading:");
         PrintLabelValWithConversionCheckUnDef("  SID: ", SID, 0, true);
-        OutputStream->print("  reference: ");
-        PrintN2kEnumType(HeadingReference, OutputStream);
+        outputStream->print("  reference: ");
+        PrintN2kEnumType(HeadingReference, outputStream);
         PrintLabelValWithConversionCheckUnDef("  Heading (deg): ", Heading, &RadToDeg, true);
         PrintLabelValWithConversionCheckUnDef("  Deviation (deg): ", Deviation, &RadToDeg, true);
         PrintLabelValWithConversionCheckUnDef("  Variation (deg): ", Variation, &RadToDeg, true);
     } else {
-        OutputStream->print("Failed to parse PGN: ");
-        OutputStream->println(N2kMsg.PGN);
+        outputStream->print("Failed to parse PGN: ");
+        outputStream->println(N2kMsg.PGN);
     }
 }
 
@@ -72,19 +72,19 @@ void COGSOG(const tN2kMsg &N2kMsg) {
     double COG;
     double SOG;
 
-    if(!OutputStream) {
+    if(!outputStream) {
       return;
     }
     if (ParseN2kCOGSOGRapid(N2kMsg, SID, HeadingReference, COG, SOG)) {
-        OutputStream->println("COG/SOG:");
+        outputStream->println("COG/SOG:");
         PrintLabelValWithConversionCheckUnDef("  SID: ", SID, 0, true);
-        OutputStream->print("  reference: ");
-        PrintN2kEnumType(HeadingReference, OutputStream);
+        outputStream->print("  reference: ");
+        PrintN2kEnumType(HeadingReference, outputStream);
         PrintLabelValWithConversionCheckUnDef("  COG (deg): ", COG, &RadToDeg, true);
         PrintLabelValWithConversionCheckUnDef("  SOG (m/s): ", SOG, 0, true);
     } else {
-        OutputStream->print("Failed to parse PGN: ");
-        OutputStream->println(N2kMsg.PGN);
+        outputStream->print("Failed to parse PGN: ");
+        outputStream->println(N2kMsg.PGN);
     }
 }
 
@@ -107,7 +107,7 @@ void GNSS(const tN2kMsg &N2kMsg) {
     uint16_t ReferenceSationID;
     double AgeOfCorrection;
 
-    if(!OutputStream) {
+    if(!outputStream) {
       return;
     }
     if (ParseN2kGNSS(N2kMsg, SID, DaysSince1970, SecondsSinceMidnight,
@@ -116,25 +116,25 @@ void GNSS(const tN2kMsg &N2kMsg) {
                      nSatellites, HDOP, PDOP, GeoidalSeparation,
                      nReferenceStations, ReferenceStationType, ReferenceSationID,
                      AgeOfCorrection)) {
-        OutputStream->println("GNSS info:");
+        outputStream->println("GNSS info:");
         PrintLabelValWithConversionCheckUnDef("  SID: ", SID, 0, true);
         PrintLabelValWithConversionCheckUnDef("  days since 1.1.1970: ", DaysSince1970, 0, true);
         PrintLabelValWithConversionCheckUnDef("  seconds since midnight: ", SecondsSinceMidnight, 0, true);
         PrintLabelValWithConversionCheckUnDef("  latitude: ", Latitude, 0, true, 9);
         PrintLabelValWithConversionCheckUnDef("  longitude: ", Longitude, 0, true, 9);
         PrintLabelValWithConversionCheckUnDef("  altitude: (m): ", Altitude, 0, true);
-        OutputStream->print("  GNSS type: ");
-        PrintN2kEnumType(GNSStype, OutputStream);
-        OutputStream->print("  GNSS method: ");
-        PrintN2kEnumType(GNSSmethod, OutputStream);
+        outputStream->print("  GNSS type: ");
+        PrintN2kEnumType(GNSStype, outputStream);
+        outputStream->print("  GNSS method: ");
+        PrintN2kEnumType(GNSSmethod, outputStream);
         PrintLabelValWithConversionCheckUnDef("  satellite count: ", nSatellites, 0, true);
         PrintLabelValWithConversionCheckUnDef("  HDOP: ", HDOP, 0, true);
         PrintLabelValWithConversionCheckUnDef("  PDOP: ", PDOP, 0, true);
         PrintLabelValWithConversionCheckUnDef("  geoidal separation: ", GeoidalSeparation, 0, true);
         PrintLabelValWithConversionCheckUnDef("  reference stations: ", nReferenceStations, 0, true);
     } else {
-        OutputStream->print("Failed to parse PGN: ");
-        OutputStream->println(N2kMsg.PGN);
+        outputStream->print("Failed to parse PGN: ");
+        outputStream->println(N2kMsg.PGN);
     }
 }
 

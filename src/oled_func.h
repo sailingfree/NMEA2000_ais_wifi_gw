@@ -26,6 +26,6 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern int lineh;
 
-void oled_init(void);
-void oled_write(int x, int y, const char* str);
-void oled_printf(int x, int y, const char* fmt, ...);
+void oledInit(void);
+void oledWrite(int x, int y, const char* str);
+void oledPrintf(int x, int y, const char* fmt, ...);

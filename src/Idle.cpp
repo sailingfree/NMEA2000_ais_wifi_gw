@@ -86,7 +86,7 @@ int getCpuAvg(int core) {
     return 0;
 }
 
-void IdleInit() {
+void initIdle() {
     // Create idle loop tasks for CPU usage monitoring
     // Create task for core 0, loop() runs on core 1
     xTaskCreatePinnedToCore(

@@ -4,7 +4,7 @@
 #include <GwDefs.h>
 
 // Register host name in mDNS
-void initializeMdns(String & host_name) {
+void initMdns(String & host_name) {
     if (MDNS.begin(host_name.c_str())) {
         Console->print("* MDNS responder started. Hostname -> ");
         Console->println(host_name);

@@ -24,9 +24,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 
-void GwPrefsInit();
+void gwPrefsInit();
 String GwSetVal(const char * key, String val);
-String GwGetVal(const char * key, String defval = "---");
+String gwGetVal(const char * key, String defval = "---");
 void GwListRegs(Stream &s);
 bool isGwKey(String k);
 void GwPrint(Stream &s);

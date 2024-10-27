@@ -21,4 +21,4 @@
 #define MAX_NMEA0183_MESSAGE_SIZE 150  // For AIS
 #define ENABLE_DEBUG_LOG 1
 
-void handleAis();
+void handleAIS();

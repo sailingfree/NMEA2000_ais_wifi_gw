@@ -21,7 +21,7 @@ void showActivity() {
         // Blink the led
 
         digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-        oled_printf(0, 0, "Up %c %s", spinner[nexti], hostName.c_str());
+        oledPrintf(0, 0, "Up %c %s", spinner[nexti], hostName.c_str());
         nexti++;
         if (nexti >= 4) {
             nexti = 0;

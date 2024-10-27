@@ -4,6 +4,6 @@
 
 void initN2k(uint32_t id);
 void handleN2k();
-double ReadVoltage(byte pin);
+double readVoltage(byte pin);
 void ListDevices(Stream &stream, bool force);
 

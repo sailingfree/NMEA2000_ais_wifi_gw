@@ -13,4 +13,4 @@ void GNSS(const tN2kMsg &N2kMsg);
 void HandleNMEA2000Msg(const tN2kMsg &N2kMsg);
 
 // Where the output goes.
-extern Stream *OutputStream;
+extern Stream *outputStream;

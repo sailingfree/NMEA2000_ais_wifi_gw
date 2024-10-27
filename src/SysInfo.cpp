@@ -29,6 +29,21 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "uptime_formatter.h"
 
+// Map for received n2k messages. Logs the PGN and the count
+std::map<int, int> mapN2kMsg;
+
+// Map for the GPS info. Logs the sentences and values
+std::map<String, String> mapGps;
+
+// Map for the satellites in view.
+std::map<int, tGSV> mapSatellites;
+
+// Map for all external sensors and their values
+std::map<String, String> mapSensors;
+
+
+
+
 void getNetInfo(Stream &s) {
     wifi_sta_list_t wifi_sta_list;
     tcpip_adapter_sta_list_t adapter_sta_list;
@@ -36,9 +51,9 @@ void getNetInfo(Stream &s) {
     s.println("=========== NETWORK ==========");
     s.printf("HOST NAME: %s\n", hostName.c_str());
     s.printf("MAC: %s\n", macAddress.c_str());
-    s.printf("WifiMode %s\n", WifiMode.c_str());
-    s.printf("WifiIP %s\n", WifiIP.c_str());
-    s.printf("WifiSSID %s\n", WifiSSID.c_str());
+    s.printf("WifiMode %s\n", wifiMode.c_str());
+    s.printf("WifiIP %s\n", wifiIP.c_str());
+    s.printf("WifiSSID %s\n", wifiSSID.c_str());
 
     // Get the wifi station list and list the connected device details
     memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
@@ -69,33 +84,33 @@ void getNetInfo(Stream &s) {
 void getSysInfo(Stream &s) {
     EspClass esp;
 
-    uint32_t heap = esp.getHeapSize();      // total heap size
-    uint32_t freeheap = esp.getFreeHeap();  // available heap
-    uint32_t heapUsedPc = (heap - freeheap) * 100 / heap;
+    uint32_t heapSize = esp.getHeapSize();      // total heap size
+    uint32_t heapFree = esp.getFreeHeap();  // available heap
+    uint32_t heapUsedPc = (heapSize - heapFree) * 100 / heapSize;
 
-    uint8_t chiprev = esp.getChipRevision();
-    const char *model = esp.getChipModel();
+    uint8_t chipRev = esp.getChipRevision();
+    const char *chipModel = esp.getChipModel();
     uint32_t sketchSize = esp.getSketchSize();
-    uint32_t freeSketch = esp.getFreeSketchSpace();
-    uint32_t flashsize = esp.getFlashChipSize();
-    uint32_t flashUsedPc = (flashsize - freeSketch) * 100 / flashsize;
-    uint64_t efuse = esp.getEfuseMac();
+    uint32_t sketchFree = esp.getFreeSketchSpace();
+    uint32_t flashSize = esp.getFlashChipSize();
+    uint32_t flashUsedPc = (flashSize - sketchFree) * 100 / flashSize;
+    uint64_t efuseMAC = esp.getEfuseMac();
     String uptime = uptime_formatter::getUptime();
-    String node = GwGetVal(LASTNODEADDRESS);
+    String node = gwGetVal(LASTNODEADDRESS);
 
     s.println("=========== SYSTEM ==========");
-    s.printf("Model %s\n", Model.c_str());
+    s.printf("Model %s\n", modelName.c_str());
     s.printf("Node: %s\n", node.c_str());
     s.printf("Uptime: %s", uptime.c_str());
-    s.printf("Heap \t%d\n", heap);
-    s.printf("Heap Free\t%d\n", freeheap);
+    s.printf("Heap \t%d\n", heapSize);
+    s.printf("Heap Free\t%d\n", heapFree);
     s.printf("Heap used %d%%\n", heapUsedPc);
-    s.printf("ChipRev \t%d\n", chiprev);
-    s.printf("Model \t%s\n", model);
+    s.printf("ChipRev \t%d\n", chipRev);
+    s.printf("Model \t%s\n", chipModel);
     s.printf("Sketch \t%d\n", sketchSize);
-    s.printf("Sketch Free \t%d\n", freeSketch);
+    s.printf("Sketch Free \t%d\n", sketchFree);
     s.printf("Flash used %d%%\n", flashUsedPc);
-    s.printf("Efuse \t0x%llx\n", efuse);
+    s.printf("Efuse \t0x%llx\n", efuseMAC);
     for (int c = 0; c < 2; c++) {
         s.printf("CPU %d load %d%%\n", c, getCpuAvg(c));
     }
@@ -105,10 +120,10 @@ void getSysInfo(Stream &s) {
 }
 
 void getGps(Stream &s) {
-    std::map<String, String>::iterator it = Gps.begin();
+    std::map<String, String>::iterator it = mapGps.begin();
     s.println("=========== GPS ==========");
 
-    while (it != Gps.end()) {
+    while (it != mapGps.end()) {
         s.printf("%s %s\n", it->first.c_str(), it->second.c_str());
         it++;
     }
@@ -118,13 +133,13 @@ void getGps(Stream &s) {
 void getSatellites(Stream &s) {
     time_t now = time(NULL);
 
-    std::map<int, tGSV>::iterator it = Satellites.begin();
+    std::map<int, tGSV>::iterator it = mapSatellites.begin();
     // the map may have changed so go through it again
-    it = Satellites.begin();
+    it = mapSatellites.begin();
     s.println("=========== GPS Satellites==========");
-    s.printf("Satellites %s\n", Gps["GSV sats"].c_str());
+    s.printf("Satellites %s\n", mapGps["GSV sats"].c_str());
     s.printf("SVID\tAZ\tELEV\tSNR\n");
-    while (it != Satellites.end()) {
+    while (it != mapSatellites.end()) {
         tGSV sat = it->second;
         if (sat.Azimuth != NMEA0183DoubleNA && sat.Elevation != NMEA0183DoubleNA && sat.SNR != NMEA0183DoubleNA) {
             s.printf("%d\t%g\t%g\t%g\n", sat.SVID, sat.Azimuth, sat.Elevation, sat.SNR);
@@ -136,24 +151,24 @@ void getSatellites(Stream &s) {
 }
 
 void getSensors(Stream &s) {
-    std::map<String, String>::iterator it = Sensors.begin();
+    std::map<String, String>::iterator it = mapSensors.begin();
 
     s.println("=========== SENSORS ==========");
 
-    while (it != Sensors.end()) {
+    while (it != mapSensors.end()) {
         s.printf("%s %s\n", it->first.c_str(), it->second.c_str());
         it++;
     }
     s.println("=========== END ==========");
 }
 
-extern std::map<int, int> N2kMsgMap;
+extern std::map<int, int> mapN2kMsg;
 void getN2kMsgs(Stream &s) {
-    std::map<int, int>::iterator it = N2kMsgMap.begin();
+    std::map<int, int>::iterator it = mapN2kMsg.begin();
 
     s.println("======== N2K Messages ====");
 
-    while (it != N2kMsgMap.end()) {
+    while (it != mapN2kMsg.end()) {
         s.printf("%d %d\n", it->first, it->second);
         it++;
     }

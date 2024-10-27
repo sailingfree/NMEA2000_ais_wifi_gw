@@ -6,4 +6,4 @@
 
 void updateSensors();
 void initSensors();
-double ReadVoltage(byte pin);
+double readVoltage(byte pin);

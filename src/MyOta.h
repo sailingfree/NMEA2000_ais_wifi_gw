@@ -2,5 +2,5 @@
 
 #include <Arduino.h>
 
-void initializeOTA();
+void initOTA();
 void handleOta();

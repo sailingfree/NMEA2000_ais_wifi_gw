@@ -33,6 +33,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <YDtoN2KUDP.h>
 
+// The UDP yacht data reader
+YDtoN2kUDP  YDRecvUDP;
+
 // Constructor
 YDtoN2kUDP::YDtoN2kUDP() {
 }
