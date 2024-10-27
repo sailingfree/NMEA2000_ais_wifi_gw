@@ -23,14 +23,6 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <Arduino.h>
-#include <map>
-
-extern std::map<String, String> Gps;
-extern std::map<String, String> Sensors;
-
-extern String WifiMode, WifiIP, WifiSSID;
-extern String host_name, macAddress;
-
 
 void initGwShell();
 void setShellSource(Stream * stream);

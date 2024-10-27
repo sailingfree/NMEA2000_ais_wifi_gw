@@ -19,8 +19,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _BoatData_H_
-#define _BoatData_H_
+#pragma once
 
 struct tBoatData {
     unsigned long DaysSince1970;  // Days since 1970-01-01
@@ -55,4 +54,4 @@ struct tBoatData {
     };
 };
 
-#endif  // _BoatData_H_
+void displayBoat(Stream &stream);

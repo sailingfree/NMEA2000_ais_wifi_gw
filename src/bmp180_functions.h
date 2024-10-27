@@ -8,6 +8,8 @@
 // SDA ----- SDA
 // SCL ----- SCL
 
+#pragma once
+
 #define I2C_Freq 100000
 #define SDA_0 21
 #define SCL_0 22

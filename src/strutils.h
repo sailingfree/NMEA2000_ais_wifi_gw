@@ -1,7 +1,6 @@
 // Implement some missing string utils
 
-#ifndef AIS_STR_UTIL_H
-#define AIS_STR_UTIL_H
+#pragma once
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -294,5 +293,3 @@ size_t seperate(output_t &_output, const StringRef &_strInput) {
 }
 
 };  // namespace AIS
-
-#endif  // #ifndef AIS_STR_UTIL_H

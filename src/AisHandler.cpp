@@ -2,6 +2,9 @@
 
 
 #include <AisHandler.h>
+#include <NMEA0183AIStoNMEA2000.h>
+#include <ais_decoder.h>
+#include <GwDefs.h>
 
 MyAisDecoder decoder;               // Create decoder object
 AIS::DefaultSentenceParser parser;  // Create parser object

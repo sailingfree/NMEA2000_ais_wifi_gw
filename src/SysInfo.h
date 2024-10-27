@@ -32,7 +32,7 @@ extern std::map<int, tGSV> Satellites;
 extern std::map<String, String> Sensors;
 
 extern String WifiMode, WifiIP, WifiSSID;
-extern String host_name, macAddress;
+extern String hostName, macAddress;
 extern String Model;
 
 void getNetInfo(Stream& s);

@@ -1,6 +1,5 @@
 
-#ifndef TOOLKIT_AIS_DEFAULT_PARSER_H
-#define TOOLKIT_AIS_DEFAULT_PARSER_H
+#pragma once
 
 #include "ais_decoder.h"
 
@@ -29,4 +28,3 @@ class DefaultSentenceParser : public SentenceParser {
 
 };  // namespace AIS
 
-#endif  // #ifndef TOOLKIT_AIS_DEFAULT_PARSER_H

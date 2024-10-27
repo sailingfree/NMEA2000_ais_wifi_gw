@@ -1,6 +1,5 @@
 
-#ifndef TOOLKIT_AIS_DECODER_H
-#define TOOLKIT_AIS_DECODER_H
+#pragma once
 
 #include <array>
 #include <set>
@@ -370,5 +369,3 @@ class AisDecoder {
 };
 
 };  // namespace AIS
-
-#endif  // #ifndef TOOLKIT_AIS_DECODER_H

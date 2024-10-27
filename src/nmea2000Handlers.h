@@ -1,5 +1,7 @@
 // nmea2000 handlers header
 
+#pragma once
+
 typedef struct {
     unsigned long PGN;
     void (*Handler)(const tN2kMsg &N2kMsg);

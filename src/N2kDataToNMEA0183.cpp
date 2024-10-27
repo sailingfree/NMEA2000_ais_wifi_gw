@@ -29,10 +29,10 @@
 #include <map>
 
 #include "BoatData.h"
-extern Stream * Console;
+#include <GwDefs.h>
+
 const double radToDeg = 180.0 / M_PI;
 void GwSendYD(const tN2kMsg &N2kMsg);
-extern std::map<int, int> N2kMsgMap;
 
 //*****************************************************************************
 void tN2kDataToNMEA0183::HandleMsg(const tN2kMsg &N2kMsg) {
