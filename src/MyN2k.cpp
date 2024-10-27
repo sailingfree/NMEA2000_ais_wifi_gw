@@ -10,7 +10,6 @@
 #include <N2kMsg.h>
 #include <N2kDeviceList.h>
 #include <oled_func.h>
-#include <oled_func.h>
 #include <GwPrefs.h>
 #include <list>
 #include <map>
