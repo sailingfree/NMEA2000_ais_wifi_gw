@@ -78,13 +78,3 @@ void GwSendYD(const tN2kMsg &N2kMsg) {
     if (N2kToSeasmart(N2kMsg, millis(), buf, MAX_NMEA2000_MESSAGE_SEASMART_SIZE) == 0) return;
 }
 
-// Handle any YD messages received
-// Read the YD data, decode the N2K messages
-void handleIncomingYD(void) {
-    tN2kMsg msg;
-
-    while (YDRecvUDP.readYD(msg)) {
-        NMEA2000.RunMessageHandlers(msg);
-        Serial.printf("YD Msg PGN %d\n", msg.PGN);
-    }
-}

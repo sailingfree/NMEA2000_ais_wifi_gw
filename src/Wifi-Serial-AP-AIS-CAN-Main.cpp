@@ -134,6 +134,9 @@ void setup() {
     // Init the Wifi
     initWifi(hostName);
 
+    // Init the YD Receiver
+    initYDtoN2kUDP();
+
     // Update over air (OTA)
     initOTA();
 

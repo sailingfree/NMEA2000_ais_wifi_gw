@@ -27,6 +27,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <WiFi.h>
 
 #define N2K_PKT_SIZE 1460
+#define ydUdpRecvPort 4445
 
 class YDtoN2kUDP {
    public:
@@ -38,3 +39,10 @@ class YDtoN2kUDP {
     WiFiUDP wifiUdp;
     char packetBuffer[N2K_PKT_SIZE];  // buffer to hold incoming packet
 };
+
+// Init function
+void initYDtoN2kUDP();
+
+// Handle any YD messages received 
+// Read the YD data, decode the N2K messages
+void handleIncomingYD(void);

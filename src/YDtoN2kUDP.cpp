@@ -30,8 +30,13 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+#include <Arduino.h>
 #include <YDtoN2KUDP.h>
+#include <N2ktoYD.h>
+#include <GwDefs.h>
+
+// Global YD received message count
+uint32_t ydMsgCount;
 
 // The UDP yacht data reader
 YDtoN2kUDP  YDRecvUDP;
@@ -130,8 +135,31 @@ bool YDtoN2kUDP::readYD(tN2kMsg &msgout)
       Serial.printf("SRC %d PGN %d\n", source, PGN);
     }
     hadpacket = true;
+    ydMsgCount++;
     }
   }
   return hadpacket;
 }
 
+void initYDtoN2kUDP() {
+  YDRecvUDP.begin(ydUdpRecvPort);
+}
+
+// Handle any YD messages received
+// Read the YD data, decode the N2K messages
+void handleIncomingYD(void) {
+    tN2kMsg msg;
+
+    while (YDRecvUDP.readYD(msg)) {
+        ydMsgCount++;
+
+        // Send the n2k message to the bus
+        NMEA2000.SendMsg(msg);
+
+        // And send to local YD receivers
+        GwSendYD(msg);
+
+        // Bump the map counters
+        mapYdMsg[msg.PGN]++;
+    }
+}
