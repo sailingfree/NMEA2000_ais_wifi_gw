@@ -164,7 +164,7 @@ void initWifi(String& host_name) {
         Console->printf("AP IP address %s GW %s Netmask %s SSID %s PW %s\n",
                         UnitIP.toString(), AP_gateway.toString(), AP_subnet.toString(), AP_ssid.c_str(), AP_password.c_str());
         wifiType = 1;
-        oledPrintf(0, lineh, "AP %s", UnitIP.toString().c_str());
+        oledPrintf(0, OLED_LINE_2, "AP %s", UnitIP.toString().c_str());
         wifiMode = "AP";
         wifiIP = UnitIP.toString();
         wifiSSID = AP_ssid;
@@ -176,7 +176,7 @@ void initWifi(String& host_name) {
         Console->println("IP client address: ");
         Console->println(WiFi.localIP());
         UnitIP = WiFi.localIP();
-        oledPrintf(0, lineh, "Client %s", WiFi.localIP().toString().c_str());
+        oledPrintf(0, OLED_LINE_2, "Client %s", WiFi.localIP().toString().c_str());
     }
 }
 

@@ -19,12 +19,16 @@ void showActivity() {
         mTimeSeconds++;
 
         // Blink the led
-
         digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+
+        // Update the oled with a spinner
         oledPrintf(0, 0, "Up %c %s", spinner[nexti], hostName.c_str());
         nexti++;
         if (nexti >= 4) {
             nexti = 0;
         }
+
+        // Show the number of received YD and CAN messages
+        oledPrintf(0, OLED_LINE_3, "CAN %d YD %d", canMsgCount, ydMsgCount);
     }
 }

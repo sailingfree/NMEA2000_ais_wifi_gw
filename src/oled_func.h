@@ -26,6 +26,13 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern int lineh;
 
+// Preset some line nummbers
+#define OLED_LINE_1 (lineh * 0)
+#define OLED_LINE_2 (lineh * 1)
+#define OLED_LINE_3 (lineh * 2)
+#define OLED_LINE_4 (lineh * 3)
+#define OLED_LINE_5 (lineh * 4)
+
 void oledInit(void);
 void oledWrite(int x, int y, const char* str);
 void oledPrintf(int x, int y, const char* fmt, ...);

@@ -28,6 +28,11 @@ using namespace std;
 // List of n2k devices for the device scanner
 tN2kDeviceList* pN2kDeviceList;
 
+// Global can message counter
+uint32_t canMsgCount;
+
+// Global this node ID current value
+uint32_t thisNodeId;
 
 // Set the information for other bus devices, which messages we support
 static const unsigned long TransmitMessages[] PROGMEM = { 127489L,  // Engine dynamic
@@ -51,7 +56,8 @@ static const unsigned long ReceiveMessages[] PROGMEM = {/*126992L,*/  // System 
 
 
 
-// Handle some other gw messages from other gw nodes
+// Handle incoming received CAN messages and forward to other nodes
+// using YD
 static void handle_gw_msgs(const tN2kMsg& N2kMsg) {
     ulong PGN = N2kMsg.PGN;
     switch (PGN) {
@@ -73,6 +79,9 @@ static void handle_gw_msgs(const tN2kMsg& N2kMsg) {
 
     // Increment the map of PGNs
     mapN2kMsg[PGN]++;
+
+    // Increment the count of all n2k messages
+    canMsgCount++;
 }
 
 
@@ -100,8 +109,6 @@ void initN2k(uint32_t id) {
         25,   // Device class=Inter/Intranetwork Device. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
         2046  // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
     );
-
-    oledPrintf(0, lineh * 2, "My ID 0x%x", id);
 
     NMEA2000.SetConfigurationInformation("Naiad ",
         "Must be installed internally, not water or dust proof.",
@@ -218,7 +225,7 @@ static void SendN2kEnvironment() {
         outsideTemp = bmp180Temperature();
         pressure = bmp180Pressure();
 
-        oledPrintf(0, 4 * lineh, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
+        oledPrintf(0, OLED_LINE_5, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
 
         SetN2kOutsideEnvironmentalParameters(N2kMsg, 0,
             waterTemp,
@@ -289,6 +296,5 @@ void handleN2k() {
         ListDevices(s, false);
     }
     Console->print(s.data);
-
 }
 
