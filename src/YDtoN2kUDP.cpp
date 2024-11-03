@@ -151,6 +151,7 @@ void handleIncomingYD(void) {
     tN2kMsg msg;
 
     while (YDRecvUDP.readYD(msg)) {
+        ulong PGN = msg.PGN;
         ydMsgCount++;
 
         // Send the n2k message to the bus
@@ -160,6 +161,15 @@ void handleIncomingYD(void) {
         GwSendYD(msg);
 
         // Bump the map counters
-        mapYdMsg[msg.PGN]++;
+        mapYdMsg[PGN]++;
+
+        // special treatment for N2K identity messages
+        switch(PGN) {
+          case 126996:    // Product information about the YD nodes
+            NMEA2000.RunMessageHandlers(msg);
+            break;
+          default:
+            break;
+        }
     }
 }
