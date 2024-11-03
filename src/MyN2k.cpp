@@ -70,6 +70,9 @@ static void handle_gw_msgs(const tN2kMsg& N2kMsg) {
         GwSendYD(N2kMsg);
         break;
     }
+
+    // Increment the map of PGNs
+    mapN2kMsg[PGN]++;
 }
 
 
