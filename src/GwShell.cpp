@@ -101,9 +101,15 @@ int net(int argc, char ** argv) {
 
 // Print the messages that have been seen incoming
 int messages(int argc, char ** argv) {
-    StringStream s;
-    getN2kMsgs(s);
-    shell.print(s.data);
+    StringStream s1;
+    StringStream s2;
+    
+    getN2kMsgs(s1);
+    shell.print(s1.data);
+
+    getYdMsgs(s2);
+    shell.print(s2.data);
+
     return 0;
 }
 

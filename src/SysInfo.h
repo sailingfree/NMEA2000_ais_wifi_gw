@@ -42,3 +42,4 @@ void getSatellites(Stream& s);
 void getSensors(Stream& s);
 int  getCpuAvg(int core);
 void getN2kMsgs(Stream& s);
+void getYdMsgs(Stream& s);

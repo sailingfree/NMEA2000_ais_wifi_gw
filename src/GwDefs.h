@@ -18,9 +18,11 @@ extern String hostName;
 extern tNMEA0183 AIS_NMEA0183;
 extern uint16_t daysSince1970;
 extern double secondsSinceMidnight;
+
 extern std::map<String, String> mapGps;
 extern std::map<String, String> mapSensors;
 extern std::map<int, int> mapN2kMsg;
+extern std::map<int, int> mapYdMsg;
 
 
 extern String wifiMode, wifiIP, wifiSSID;
@@ -33,4 +35,7 @@ extern String hostName;
 extern String modelName;
 extern float temp;
 extern float voltage;
+
+extern uint32_t canMsgCount, ydMsgCount;
+extern uint32_t thisNodeId;
 

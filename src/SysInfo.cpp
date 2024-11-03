@@ -32,6 +32,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Map for received n2k messages. Logs the PGN and the count
 std::map<int, int> mapN2kMsg;
 
+// Map for the YD received messages on port 4445
+std::map<int, int> mapYdMsg;
+
 // Map for the GPS info. Logs the sentences and values
 std::map<String, String> mapGps;
 
@@ -162,13 +165,24 @@ void getSensors(Stream &s) {
     s.println("=========== END ==========");
 }
 
-extern std::map<int, int> mapN2kMsg;
 void getN2kMsgs(Stream &s) {
     std::map<int, int>::iterator it = mapN2kMsg.begin();
 
-    s.println("======== N2K Messages ====");
+    s.println("======== N2K CAN Messages ====");
 
     while (it != mapN2kMsg.end()) {
+        s.printf("%d %d\n", it->first, it->second);
+        it++;
+    }
+    s.println("=========== END ==========");
+}
+
+void getYdMsgs(Stream &s) {
+    std::map<int, int>::iterator it = mapYdMsg.begin();
+
+    s.println("======== YD Messages ====");
+
+    while (it != mapYdMsg.end()) {
         s.printf("%d %d\n", it->first, it->second);
         it++;
     }
