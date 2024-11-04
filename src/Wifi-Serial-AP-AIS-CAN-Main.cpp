@@ -119,8 +119,6 @@ void setup() {
     // get CPU calibration timing
     calibrateCpu();
 
-    initN2k(id);
-
     // Init AIS serial port 2
     // The AIS receiver I use is the NASA AIS Engine 3 device which outputs NMEA0183 at 38400 bps
     // https://www.nasamarine.com/product/ais-engine-3/
@@ -164,7 +162,9 @@ void setup() {
     
     initIdle();
 
-    delay(200);
+    // Do this last so that address claiming works without delay
+    initN2k(id);
+
     Serial.println("Finished setup");
 }
 

@@ -18,8 +18,8 @@
 #include <StringStream.h>
 
 #define MiscSendOffset 120
-#define VerySlowDataUpdatePeriod 10000  // temperature etc
-#define SlowDataUpdatePeriod 1000       // Time between CAN Messages sent
+#define VerySlowDataUpdatePeriod 2000   // temperature etc in ms
+#define SlowDataUpdatePeriod 1000       // Time between CAN Messages sent in ms
 #define FastDataUpdatePeriod 100        // Fast data period
 
 /////// Variables
@@ -90,11 +90,10 @@ static void handle_gw_msgs(const tN2kMsg& N2kMsg) {
 void initN2k(uint32_t id) {
     // Reserve enough buffer for sending all messages. This does not work on small memory devices like Uno or Mega
 
-    NMEA2000.SetN2kCANMsgBufSize(8);
+    NMEA2000.SetN2kCANMsgBufSize(250);
     NMEA2000.SetN2kCANReceiveFrameBufSize(250);
     NMEA2000.SetN2kCANSendFrameBufSize(250);
 
-    NMEA2000.SetMode(tNMEA2000::N2km_ListenAndNode, 50);
     pN2kDeviceList = new tN2kDeviceList(&NMEA2000);
 
     NMEA2000.SetProductInformation(hostName.c_str(),     // Manufacturer's Model serial code
@@ -119,15 +118,18 @@ void initN2k(uint32_t id) {
 
     NMEA2000.SetMsgHandler(handle_gw_msgs);
 
+    // Get the last node address and use that to start address claim
     nodeAddress = gwGetVal(LASTNODEADDRESS, "32").toInt();
-
+    thisNodeId = nodeAddress;   // Save for external read
     Console->printf("NodeAddress=%d\n", nodeAddress);
 
+    // COnfigure to listen and forward
     NMEA2000.SetMode(tNMEA2000::N2km_ListenAndNode, nodeAddress);
 
     NMEA2000.ExtendTransmitMessages(TransmitMessages);
     NMEA2000.ExtendReceiveMessages(ReceiveMessages);
     NMEA2000.Open();
+    NMEA2000.ParseMessages();  // Start address claim 
 }
 
 static bool IsTimeToUpdate(unsigned long NextUpdate) {
@@ -227,15 +229,15 @@ static void SendN2kEnvironment() {
 
         oledPrintf(0, OLED_LINE_5, "Temp %.1f Pres %.0f", outsideTemp, pressure / 100.0);
 
-        SetN2kOutsideEnvironmentalParameters(N2kMsg, 0,
-            waterTemp,
-            outsideTemp,
-            pressure);
-
-        mapSensors["Outside temp"] = String(outsideTemp);
+        SetN2kPressure(N2kMsg, 0, 0, N2kps_Atmospheric, pressure);
         mapSensors["Pressure"] = String(pressure / 100);
-
+        NMEA2000.SendMsg(N2kMsg);
         GwSendYD(N2kMsg);
+
+        SetN2kTemperatureExt(N2kMsg, 0, 0, N2kts_OutsideTemperature, CToKelvin(outsideTemp));
+        NMEA2000.SendMsg(N2kMsg);
+        GwSendYD(N2kMsg);
+        mapSensors["Outside temp"] = String(outsideTemp);
     }
 }
 
@@ -275,8 +277,6 @@ void handleN2k() {
     static time_t last = 0;
     time_t now = time(NULL);
 
-    SendN2kEnvironment();
-
     NMEA2000.ParseMessages();
 
     int SourceAddress = NMEA2000.GetN2kSource();
@@ -296,5 +296,7 @@ void handleN2k() {
         ListDevices(s, false);
     }
     Console->print(s.data);
-}
 
+    // Send the current environment details to the bus
+    SendN2kEnvironment();
+}
