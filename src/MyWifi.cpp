@@ -183,33 +183,35 @@ void initWifi(String& host_name) {
 // Connect to a wifi AP
 // Try all the configured APs
 bool connectWifi() {
-    int wifi_retry = 0;
+    int wifi_retry = 5;  // Number of times to try to connect as a client
 
     Serial.printf("There are %d APs to try\n", MaxAP);
 
-    for (int i = 0; i < MaxAP; i++) {
-        Serial.printf("\nTrying %s\n", wifiCreds[i].ssid.c_str());
-        WiFi.disconnect();
-        WiFi.mode(WIFI_OFF);
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(wifiCreds[i].ssid.c_str(), wifiCreds[i].pass.c_str());
-        wifi_retry = 0;
+    while (wifi_retry) {
+        int connectRetry = 5;   // Number of time to wait for connect attempt
+        for (int i = 0; i < MaxAP; i++) {
+            Serial.printf("\nTrying %s\n", wifiCreds[i].ssid.c_str());
+            WiFi.disconnect();
+            WiFi.mode(WIFI_OFF);
+            WiFi.mode(WIFI_STA);
+            WiFi.begin(wifiCreds[i].ssid.c_str(), wifiCreds[i].pass.c_str());
 
-        while (WiFi.status() != WL_CONNECTED && wifi_retry < 20) {  // Check connection, try 5 seconds
-            wifi_retry++;
-            delay(500);
-            Console->print(".");
+            while (WiFi.status() != WL_CONNECTED && connectRetry--) {  // Check connection
+                delay(500);
+                Console->print(".");
+            }
+            Console->println("");
+            if (WiFi.status() == WL_CONNECTED) {
+                wifiMode = "Client";
+                wifiSSID = wifiCreds[i].ssid;
+                wifiIP = WiFi.localIP().toString();
+                Console->printf("Connected to %s\n", wifiCreds[i].ssid.c_str());
+                return true;
+            } else {
+                Console->printf("Can't connect to %s\n", wifiCreds[i].ssid.c_str());
+            }
         }
-        Console->println("");
-        if (WiFi.status() == WL_CONNECTED) {
-            wifiMode = "Client";
-            wifiSSID = wifiCreds[i].ssid;
-            wifiIP = WiFi.localIP().toString();
-            Console->printf("Connected to %s\n", wifiCreds[i].ssid.c_str());
-            return true;
-        } else {
-            Console->printf("Can't connect to %s\n", wifiCreds[i].ssid.c_str());
-        }
+        wifi_retry--;
     }
     return false;
 }
