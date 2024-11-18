@@ -68,7 +68,6 @@ void N2kToYD_Can(const tN2kMsg &msg, char *MsgBuf) {
 // Send to Yacht device clients over udp using the cast address
 void GwSendYD(const tN2kMsg &N2kMsg) {
     IPAddress udpAddress = WiFi.broadcastIP();
-    udpAddress.fromString("192.168.15.255");
     N2kToYD_Can(N2kMsg, YD_msg);             // Create YD message from PGN
     YDSendUDP.beginPacket(udpAddress, YDudpPort);  // Send to UDP
     YDSendUDP.printf("%s\r\n", YD_msg);
