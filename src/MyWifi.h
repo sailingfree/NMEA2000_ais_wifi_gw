@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <WiFiClient.h>
 
-#define WLAN_CLIENT 0  // Set to 1 to enable client network. 0 to act as AP only
+#define WLAN_CLIENT 1  // Set to 1 to enable client network. 0 to act as AP only
 
 void initWifi(String & host_name);
 bool connectWifi();
