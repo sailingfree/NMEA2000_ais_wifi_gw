@@ -35,8 +35,7 @@ uint32_t canMsgCount;
 uint32_t thisNodeId;
 
 // Set the information for other bus devices, which messages we support
-static const unsigned long TransmitMessages[] PROGMEM = { 127489L,  // Engine dynamic
-                                                  127488L,  // Engine fast dynamic
+static const unsigned long TransmitMessages[] PROGMEM = {
                                                   127250,   // Vessel heading
                                                   130577,   // Direction data
                                                   130310,   // Outside environmental
