@@ -48,39 +48,12 @@ std::map<String, String> mapSensors;
 
 
 void getNetInfo(Stream &s) {
-    wifi_sta_list_t wifi_sta_list;
-    tcpip_adapter_sta_list_t adapter_sta_list;
-
     s.println("=========== NETWORK ==========");
     s.printf("HOST NAME: %s\n", hostName.c_str());
     s.printf("MAC: %s\n", macAddress.c_str());
     s.printf("WifiMode %s\n", wifiMode.c_str());
     s.printf("WifiIP %s\n", wifiIP.c_str());
     s.printf("WifiSSID %s\n", wifiSSID.c_str());
-
-    // Get the wifi station list and list the connected device details
-    memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
-    memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
-    esp_wifi_ap_get_sta_list(&wifi_sta_list);
-    tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
-
-    if (adapter_sta_list.num) {
-        s.println("----- DHCP clients ---------");
-        for (int i = 0; i < adapter_sta_list.num; i++) {
-            tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
-
-            s.printf("Station number %d \n", i);
-            s.printf("MAC: ");
-            for (int j = 0; j < 6; j++) {
-                s.printf("%02X", station.mac[j]);
-                if (i < 5) s.print(":");
-            }
-            s.printf("\nIP: ");
-            s.println(ip4addr_ntoa((const ip4_addr_t *)&(station.ip)));
-            s.println("");
-        }
-    }
-
     s.println("=========== END ==========");
 }
 
@@ -114,9 +87,6 @@ void getSysInfo(Stream &s) {
     s.printf("Sketch Free \t%d\n", sketchFree);
     s.printf("Flash used %d%%\n", flashUsedPc);
     s.printf("Efuse \t0x%llx\n", efuseMAC);
-    for (int c = 0; c < 2; c++) {
-        s.printf("CPU %d load %d%%\n", c, getCpuAvg(c));
-    }
     s.println("=========== SETTINGS ==========");
     GwPrint(s);
     s.println("=========== END ==========");

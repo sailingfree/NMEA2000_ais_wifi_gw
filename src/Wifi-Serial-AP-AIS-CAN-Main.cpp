@@ -20,7 +20,6 @@
 #include <AisHandler.h>
 #include <GwPrefs.h>
 #include <GwShell.h>
-#include <Idle.h>
 #include <StringStream.h>
 #include <SysInfo.h>
 #include <YDtoN2KUDP.h>
@@ -34,6 +33,8 @@
 #include <N2ktoYD.h>
 #include <GwTelnet.h>
 #include <GwJSON.h>
+#include <i2c_scanner.h>
+#include <esp_mac.h>
 
 #define GWMODE "AIS "
 
@@ -116,9 +117,6 @@ void setup() {
                   chipId[0], chipId[1], chipId[2], chipId[3], chipId[4], chipId[5],
                   id, macAddress.c_str(), hostName.c_str());
 
-    // get CPU calibration timing
-    calibrateCpu();
-
     // Init AIS serial port 2
     // The AIS receiver I use is the NASA AIS Engine 3 device which outputs NMEA0183 at 38400 bps
     // https://www.nasamarine.com/product/ais-engine-3/
@@ -126,6 +124,8 @@ void setup() {
     AIS_NMEA0183.Begin(&Serial2, 3, aisBaudrate);
 
     initSensors();
+
+    scan_i2c_bus();
     
     oledWrite(0, 0, "Initialising...");
 
@@ -159,9 +159,7 @@ void setup() {
     
     // Set product information
     modelName += GWMODE;
-    
-    initIdle();
-
+ 
     // Do this last so that address claiming works without delay
     initN2k(id);
 

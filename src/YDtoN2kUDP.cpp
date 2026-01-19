@@ -166,6 +166,7 @@ void handleIncomingYD(void) {
         // special treatment for N2K identity messages
         switch(PGN) {
           case 126996:    // Product information about the YD nodes
+            // This needs to be made public in NMEA2000.h
             NMEA2000.RunMessageHandlers(msg);
             break;
           default:
