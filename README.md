@@ -37,5 +37,5 @@ As well as the physical NMEA2000 bus connector, this gateway also broadcasts all
 
 All the code was developed using Visual Studio Code and PlatformIO for the ESP32. I know the code isn't that tidy, but I was interested in getting a working baseline to actually use on my boat for starters. This has npw been in use for several years and still proves reliable.
 
-Another project (NMEA2000_engine_electrical_nodemcu_32s) has the engine RPM and battery monitors. These have been moved from this project so the code is clearner and does not try to be too general with lots of conditional compilation or software switches.
+Another project (NMEA2000_engine_electrical_nodemcu_32s) has the engine RPM and battery monitors. These have been moved from this project so the code is cleaner and does not try to be too general with lots of conditional compilation or software switches.
 
