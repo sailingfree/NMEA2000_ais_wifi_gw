@@ -32,7 +32,10 @@ I've also included temperature, pressure, compass.
 
 I created a general purpose PCB for the ESP32 - see the hardware section -  CAN bus driver and 12V to 5V DC regulator. The PCB has a general prototype area and exposes some of the GPIOs to headers. The PCB uses 5V CAN transcievers as I had those to hand and so also has a TTL/3.3V level shifter. 
 
-All the code was developed using Visual Studio Code and PlatformIO for the ESP32. I know the code isn't that tidy, but I was interested in getting a working baseline to actually use on my boat for starters.
+## Interfaces
+As well as the physical NMEA2000 bus connector, this gateway also broadcasts all the NMEA2000 messages it receives on the bus over WiFi using the yachtData format. This is sent over UDP. In addition, it listens on port 4445 for YD messages from other locally connected devices, so for example a local unit that has a GPS receiver broadcats the appropriate N2K messages which are picked up by the gateway and sent on the physical N2K bus so that other devices on the bus see those. This has been done so that it is easy to add additional N2K sinks and sources without having to physically wire them up.
+
+All the code was developed using Visual Studio Code and PlatformIO for the ESP32. I know the code isn't that tidy, but I was interested in getting a working baseline to actually use on my boat for starters. This has npw been in use for several years and still proves reliable.
 
 Another project (NMEA2000_engine_electrical_nodemcu_32s) has the engine RPM and battery monitors. These have been moved from this project so the code is clearner and does not try to be too general with lots of conditional compilation or software switches.
 
